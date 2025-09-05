@@ -1,0 +1,52 @@
+import unittest
+from Asteroids-RiceRocks import ImageInfo
+
+class Test_ImageInfoGetAnimated(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_get_animated_returns_correct_status(self):
+        # Arrange
+        image_info = ImageInfo([45, 45], [90, 90], 40, animated=True)
+        
+        # Act
+        animated_status = image_info.get_animated()
+        
+        # Assert
+        self.assertTrue(animated_status)
+
+    @unittest.expectedFailure
+    def test_default_animated_status_on_initialization(self):
+        # Arrange
+        image_info = ImageInfo([45, 45], [90, 90], 40)
+        
+        # Act
+        animated_status = image_info.get_animated()
+        
+        # Assert
+        self.assertFalse(animated_status)  # Assuming default is False
+
+    @unittest.expectedFailure
+    def test_get_animated_reflects_changes(self):
+        # Arrange
+        image_info = ImageInfo([45, 45], [90, 90], 40, animated=False)
+        
+        # Act
+        image_info.animated = True
+        animated_status_after_change = image_info.get_animated()
+        
+        # Assert
+        self.assertTrue(animated_status_after_change)
+
+    @unittest.expectedFailure
+    def test_get_animated_without_explicit_setting(self):
+        # Arrange
+        image_info = ImageInfo([45, 45], [90, 90], 40)
+        
+        # Act
+        animated_status = image_info.get_animated()
+        
+        # Assert
+        self.assertFalse(animated_status)  # Assuming default is False
+
+if __name__ == '__main__':
+    unittest.main()

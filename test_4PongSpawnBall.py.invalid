@@ -1,0 +1,71 @@
+import unittest
+from 4_Pong import spawn_ball
+import random
+
+class Test_4PongSpawnBall(unittest.TestCase):
+
+    def setUp(self):
+        # Constants for the test
+        self.WIDTH = 600
+        self.HEIGHT = 400
+        self.LEFT = False
+        self.RIGHT = True
+
+    @unittest.expectedFailure
+    def test_ball_position_initialization(self):
+        # Arrange
+        expected_position = [self.WIDTH // 2, self.HEIGHT // 2]
+        
+        # Act
+        spawn_ball(self.RIGHT)
+        
+        # Assert
+        self.assertEqual(ball_pos, expected_position, "Ball position should be initialized to the center of the screen.")
+
+    @unittest.expectedFailure
+    def test_ball_velocity_right_direction(self):
+        # Act
+        spawn_ball(self.RIGHT)
+        
+        # Assert
+        self.assertGreater(ball_vel[0], 0, "Ball velocity in the x-direction should be positive for RIGHT direction.")
+        self.assertLess(ball_vel[1], 0, "Ball velocity in the y-direction should be negative.")
+
+    @unittest.expectedFailure
+    def test_ball_velocity_left_direction(self):
+        # Act
+        spawn_ball(self.LEFT)
+        
+        # Assert
+        self.assertLess(ball_vel[0], 0, "Ball velocity in the x-direction should be negative for LEFT direction.")
+        self.assertLess(ball_vel[1], 0, "Ball velocity in the y-direction should be negative.")
+
+    @unittest.expectedFailure
+    def test_randomness_of_ball_velocity(self):
+        # Arrange
+        velocities = set()
+        
+        # Act
+        for _ in range(10):  # Call spawn_ball multiple times
+            spawn_ball(self.RIGHT)
+            velocities.add(tuple(ball_vel))
+        
+        # Assert
+        self.assertGreater(len(velocities), 1, "Ball velocities should vary across multiple invocations.")
+
+    @unittest.expectedFailure
+    def test_velocity_range(self):
+        # Act & Assert for RIGHT direction
+        for _ in range(10):
+            spawn_ball(self.RIGHT)
+            self.assertTrue(2 <= abs(ball_vel[0]) <= 4, "Ball velocity x-component should be within the expected range.")
+            self.assertTrue(1 <= abs(ball_vel[1]) <= 3, "Ball velocity y-component should be within the expected range.")
+        
+        # Act & Assert for LEFT direction
+        for _ in range(10):
+            spawn_ball(self.LEFT)
+            self.assertTrue(2 <= abs(ball_vel[0]) <= 4, "Ball velocity x-component should be within the expected range.")
+            self.assertTrue(1 <= abs(ball_vel[1]) <= 3, "Ball velocity y-component should be within the expected range.")
+
+if __name__ == '__main__':
+    unittest.main()

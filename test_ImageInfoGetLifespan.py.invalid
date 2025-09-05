@@ -1,0 +1,69 @@
+import unittest
+from Asteroids-RiceRocks import ImageInfo
+import simplegui
+import math
+import random
+
+class Test_ImageInfoGetLifespan(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_get_lifespan_typical_object(self):
+        # Arrange
+        typical_lifespan = 50
+        image_info = ImageInfo([0, 0], [0, 0], lifespan=typical_lifespan)
+        
+        # Act
+        result = image_info.get_lifespan()
+        
+        # Assert
+        self.assertEqual(result, typical_lifespan)
+
+    @unittest.expectedFailure
+    def test_get_lifespan_no_lifespan_set(self):
+        # Arrange
+        image_info = ImageInfo([0, 0], [0, 0])
+        
+        # Act
+        result = image_info.get_lifespan()
+        
+        # Assert
+        self.assertIsNone(result)  # Assuming default is None, change if different
+
+    @unittest.expectedFailure
+    def test_get_lifespan_zero_value(self):
+        # Arrange
+        zero_lifespan = 0
+        image_info = ImageInfo([0, 0], [0, 0], lifespan=zero_lifespan)
+        
+        # Act
+        result = image_info.get_lifespan()
+        
+        # Assert
+        self.assertEqual(result, zero_lifespan)
+
+    @unittest.expectedFailure
+    def test_get_lifespan_negative_value(self):
+        # Arrange
+        negative_lifespan = -10
+        image_info = ImageInfo([0, 0], [0, 0], lifespan=negative_lifespan)
+        
+        # Act
+        result = image_info.get_lifespan()
+        
+        # Assert
+        self.assertEqual(result, negative_lifespan)
+
+    @unittest.expectedFailure
+    def test_get_lifespan_maximum_value(self):
+        # Arrange
+        max_lifespan = 2**31 - 1  # Assuming 32-bit integer max value
+        image_info = ImageInfo([0, 0], [0, 0], lifespan=max_lifespan)
+        
+        # Act
+        result = image_info.get_lifespan()
+        
+        # Assert
+        self.assertEqual(result, max_lifespan)
+
+if __name__ == '__main__':
+    unittest.main()

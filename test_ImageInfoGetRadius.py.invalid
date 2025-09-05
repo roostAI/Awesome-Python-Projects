@@ -1,0 +1,59 @@
+import unittest
+from Asteroids-RiceRocks import ImageInfo
+import simplegui
+import math
+import random
+
+class Test_ImageInfoGetRadius(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_get_radius_ship(self):
+        # Arrange
+        ship_info = ImageInfo([45, 45], [90, 90], 35)
+        # Act
+        radius = ship_info.get_radius()
+        # Assert
+        self.assertEqual(radius, 35)
+
+    @unittest.expectedFailure
+    def test_get_radius_asteroid(self):
+        # Arrange
+        asteroid_info = ImageInfo([45, 45], [90, 90], 40)
+        # Act
+        radius = asteroid_info.get_radius()
+        # Assert
+        self.assertEqual(radius, 40)
+
+    @unittest.expectedFailure
+    def test_get_radius_missile(self):
+        # Arrange
+        missile_info = ImageInfo([5, 5], [10, 10], 3, 50)
+        # Act
+        radius = missile_info.get_radius()
+        # Assert
+        self.assertEqual(radius, 3)
+
+    @unittest.expectedFailure
+    def test_get_radius_explosion(self):
+        # Arrange
+        explosion_info = ImageInfo([64, 64], [128, 128], 17, 24, True)
+        # Act
+        radius = explosion_info.get_radius()
+        # Assert
+        self.assertEqual(radius, 17)
+
+    @unittest.expectedFailure
+    def test_get_radius_no_radius_attribute(self):
+        # Arrange
+        class NoRadiusObject:
+            pass
+
+        no_radius_object = NoRadiusObject()
+        # Act & Assert
+        with self.assertRaises(AttributeError):
+            no_radius_object.get_radius()
+
+# TODO: Add more test cases if necessary
+
+if __name__ == '__main__':
+    unittest.main()

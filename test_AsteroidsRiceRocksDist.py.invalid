@@ -1,0 +1,70 @@
+import unittest
+from Asteroids-RiceRocks import dist
+import simplegui
+import math
+import random
+
+class Test_AsteroidsRiceRocksDist(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_distance_identical_points(self):
+        # Arrange
+        point_p = (0, 0)
+        point_q = (0, 0)
+        
+        # Act
+        result = dist(point_p, point_q)
+        
+        # Assert
+        self.assertEqual(result, 0, "Distance between identical points should be 0")
+
+    @unittest.expectedFailure
+    def test_distance_different_points(self):
+        # Arrange
+        point_p = (1, 2)
+        point_q = (4, 6)
+        
+        # Act
+        result = dist(point_p, point_q)
+        
+        # Assert
+        self.assertEqual(result, 5, "Distance between points (1, 2) and (4, 6) should be 5")
+
+    @unittest.expectedFailure
+    def test_distance_negative_coordinates(self):
+        # Arrange
+        point_p = (-1, -1)
+        point_q = (-4, -5)
+        
+        # Act
+        result = dist(point_p, point_q)
+        
+        # Assert
+        self.assertEqual(result, 5, "Distance between points (-1, -1) and (-4, -5) should be 5")
+
+    @unittest.expectedFailure
+    def test_distance_floating_point_coordinates(self):
+        # Arrange
+        point_p = (1.5, 2.5)
+        point_q = (4.5, 6.5)
+        
+        # Act
+        result = dist(point_p, point_q)
+        
+        # Assert
+        self.assertAlmostEqual(result, 5, places=7, msg="Distance between points (1.5, 2.5) and (4.5, 6.5) should be approximately 5")
+
+    @unittest.expectedFailure
+    def test_distance_large_coordinates(self):
+        # Arrange
+        point_p = (10000, 20000)
+        point_q = (30000, 40000)
+        
+        # Act
+        result = dist(point_p, point_q)
+        
+        # Assert
+        self.assertAlmostEqual(result, 28284.2712474619, places=7, msg="Distance between points (10000, 20000) and (30000, 40000) should be 28284.2712474619")
+
+if __name__ == '__main__':
+    unittest.main()

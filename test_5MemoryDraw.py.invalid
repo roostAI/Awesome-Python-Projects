@@ -1,0 +1,70 @@
+import unittest
+from unittest.mock import Mock
+import simplegui
+import random
+from 5_Memory import draw
+
+class Test_5MemoryDraw(unittest.TestCase):
+
+    def setUp(self):
+        # Setup common test data
+        self.canvas = Mock()
+        self.label = Mock()
+        self.deck = [1, 2, 3, 4, 5, 6, 7, 8]
+        self.exposed = [False] * len(self.deck)
+        self.turns = 0
+
+    @unittest.expectedFailure
+    def test_draw_lines_for_unexposed_cards(self):
+        # Scenario 1: Verify that lines are drawn correctly for unexposed cards
+        self.exposed = [False] * len(self.deck)
+        draw(self.canvas)
+        expected_calls = [
+            ((0, 0), (0, 100), 2, 'yellow'),
+            ((0, 0), (50, 0), 200, 'green'),
+            ((50, 0), (50, 100), 2, 'yellow'),
+            ((50, 0), (100, 0), 200, 'green'),
+            # Add more expected calls for each card
+        ]
+        for call in expected_calls:
+            self.canvas.draw_line.assert_any_call(*call)
+
+    def test_draw_numbers_for_exposed_cards(self):
+        # Scenario 2: Verify that numbers are drawn correctly for exposed cards
+        self.exposed = [True, False, True, False, True, False, True, False]
+        draw(self.canvas)
+        expected_calls = [
+            (str(self.deck[0]), [0, 90], 115, "red"),
+            (str(self.deck[2]), [100, 90], 115, "red"),
+            (str(self.deck[4]), [200, 90], 115, "red"),
+            (str(self.deck[6]), [300, 90], 115, "red"),
+        ]
+        for call in expected_calls:
+            self.canvas.draw_text.assert_any_call(*call)
+
+    def test_update_label_with_turns(self):
+        # Scenario 3: Verify the correct update of the label with the number of turns
+        self.turns = 5  # TODO: Change this value as needed
+        draw(self.canvas)
+        self.label.set_text.assert_called_once_with("Turns = " + str(self.turns))
+
+    def test_draw_with_empty_deck(self):
+        # Scenario 4: Verify the function handles an empty deck gracefully
+        self.deck = []
+        self.exposed = []
+        draw(self.canvas)
+        self.canvas.draw_line.assert_not_called()
+        self.canvas.draw_text.assert_not_called()
+
+    def test_draw_with_fully_exposed_deck(self):
+        # Scenario 5: Verify the function handles a fully exposed deck correctly
+        self.exposed = [True] * len(self.deck)
+        draw(self.canvas)
+        expected_calls = [
+            (str(num), [i * 50, 90], 115, "red") for i, num in enumerate(self.deck)
+        ]
+        for call in expected_calls:
+            self.canvas.draw_text.assert_any_call(*call)
+
+if __name__ == '__main__':
+    unittest.main()

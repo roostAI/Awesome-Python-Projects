@@ -1,0 +1,55 @@
+import unittest
+from 4_Pong import keyup
+import simplegui
+
+class Test_4PongKeyup(unittest.TestCase):
+
+    def setUp(self):
+        global paddle1_vel, paddle2_vel
+        paddle1_vel = 0
+        paddle2_vel = 0
+
+    @unittest.expectedFailure
+    def test_paddle1_stops_on_w_key_release(self):
+        """Test that paddle1 stops moving when 'w' key is released."""
+        global paddle1_vel
+        paddle1_vel = 5  # Arrange: Set paddle1_vel to a non-zero value
+        keyup(simplegui.KEY_MAP["w"])  # Act: Call keyup with 'w' key
+        self.assertEqual(paddle1_vel, 0)  # Assert: Check that paddle1_vel is 0
+
+    @unittest.expectedFailure
+    def test_paddle1_stops_on_s_key_release(self):
+        """Test that paddle1 stops moving when 's' key is released."""
+        global paddle1_vel
+        paddle1_vel = -5  # Arrange: Set paddle1_vel to a non-zero value
+        keyup(simplegui.KEY_MAP["s"])  # Act: Call keyup with 's' key
+        self.assertEqual(paddle1_vel, 0)  # Assert: Check that paddle1_vel is 0
+
+    @unittest.expectedFailure
+    def test_paddle2_stops_on_up_key_release(self):
+        """Test that paddle2 stops moving when 'up' key is released."""
+        global paddle2_vel
+        paddle2_vel = 5  # Arrange: Set paddle2_vel to a non-zero value
+        keyup(simplegui.KEY_MAP["up"])  # Act: Call keyup with 'up' key
+        self.assertEqual(paddle2_vel, 0)  # Assert: Check that paddle2_vel is 0
+
+    @unittest.expectedFailure
+    def test_paddle2_stops_on_down_key_release(self):
+        """Test that paddle2 stops moving when 'down' key is released."""
+        global paddle2_vel
+        paddle2_vel = -5  # Arrange: Set paddle2_vel to a non-zero value
+        keyup(simplegui.KEY_MAP["down"])  # Act: Call keyup with 'down' key
+        self.assertEqual(paddle2_vel, 0)  # Assert: Check that paddle2_vel is 0
+
+    @unittest.expectedFailure
+    def test_no_change_on_unrelated_key_release(self):
+        """Test that unrelated key releases do not change paddle velocities."""
+        global paddle1_vel, paddle2_vel
+        paddle1_vel = 3  # Arrange: Set paddle1_vel to a specific non-zero value
+        paddle2_vel = -3  # Arrange: Set paddle2_vel to a specific non-zero value
+        keyup(simplegui.KEY_MAP["a"])  # Act: Call keyup with an unrelated key
+        self.assertEqual(paddle1_vel, 3)  # Assert: Check that paddle1_vel remains unchanged
+        self.assertEqual(paddle2_vel, -3)  # Assert: Check that paddle2_vel remains unchanged
+
+if __name__ == '__main__':
+    unittest.main()

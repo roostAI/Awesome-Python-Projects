@@ -1,0 +1,75 @@
+import unittest
+from Asteroids-RiceRocks import Ship, ImageInfo
+
+class Test_ShipGetRadius(unittest.TestCase):
+
+    @unittest.skip("Skipping smoke test")
+    def test_smoke(self):
+        pass
+
+    @unittest.tag('positive', 'valid')
+    def test_get_radius_ship(self):
+        # Arrange
+        ship_info = ImageInfo([45, 45], [90, 90], 35)
+        ship_image = simplegui.load_image("http://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/double_ship.png")
+        ship = Ship([400, 300], [0, 0], 0, ship_image, ship_info)
+        
+        # Act
+        radius = ship.get_radius()
+        
+        # Assert
+        self.assertEqual(radius, 35)
+
+    @unittest.tag('positive', 'valid')
+    def test_get_radius_asteroid(self):
+        # Arrange
+        asteroid_info = ImageInfo([45, 45], [90, 90], 40)
+        asteroid_image = simplegui.load_image("http://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/asteroid_blue.png")
+        asteroid = Ship([400, 300], [0, 0], 0, asteroid_image, asteroid_info)  # Assuming Ship class is used for all objects
+        
+        # Act
+        radius = asteroid.get_radius()
+        
+        # Assert
+        self.assertEqual(radius, 40)
+
+    @unittest.tag('positive', 'valid')
+    def test_get_radius_missile(self):
+        # Arrange
+        missile_info = ImageInfo([5, 5], [10, 10], 3, 50)
+        missile_image = simplegui.load_image("http://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/shot2.png")
+        missile = Ship([400, 300], [0, 0], 0, missile_image, missile_info)  # Assuming Ship class is used for all objects
+        
+        # Act
+        radius = missile.get_radius()
+        
+        # Assert
+        self.assertEqual(radius, 3)
+
+    @unittest.tag('positive', 'valid')
+    def test_get_radius_explosion(self):
+        # Arrange
+        explosion_info = ImageInfo([64, 64], [128, 128], 17, 24, True)
+        explosion_image = simplegui.load_image("http://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/explosion_alpha.png")
+        explosion = Ship([400, 300], [0, 0], 0, explosion_image, explosion_info)  # Assuming Ship class is used for all objects
+        
+        # Act
+        radius = explosion.get_radius()
+        
+        # Assert
+        self.assertEqual(radius, 17)
+
+    @unittest.tag('negative', 'invalid')
+    def test_get_radius_no_radius_defined(self):
+        # Arrange
+        class CustomObject:
+            pass
+
+        custom_object = CustomObject()
+        
+        # Act & Assert
+        with self.assertRaises(AttributeError):
+            custom_object.get_radius()
+
+if __name__ == '__main__':
+    unittest.main()

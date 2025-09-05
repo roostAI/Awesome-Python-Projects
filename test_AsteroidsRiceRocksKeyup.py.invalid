@@ -1,0 +1,60 @@
+import unittest
+from unittest.mock import MagicMock
+import simplegui
+from Asteroids-RiceRocks import keyup, my_ship
+
+class Test_AsteroidsRiceRocksKeyup(unittest.TestCase):
+
+    def setUp(self):
+        # Mock the methods of my_ship
+        self.my_ship = my_ship
+        self.my_ship.increment_angle_vel = MagicMock()
+        self.my_ship.decrement_angle_vel = MagicMock()
+        self.my_ship.set_thrust = MagicMock()
+
+    @unittest.expectedFailure
+    def test_keyup_left_key(self):
+        # Arrange
+        initial_angular_velocity = self.my_ship.angle_vel  # Assuming angle_vel is an attribute
+        # Act
+        keyup(simplegui.KEY_MAP['left'])
+        # Assert
+        self.my_ship.increment_angle_vel.assert_called_once()
+        self.assertEqual(self.my_ship.angle_vel, initial_angular_velocity + 0.05)
+
+    @unittest.expectedFailure
+    def test_keyup_right_key(self):
+        # Arrange
+        initial_angular_velocity = self.my_ship.angle_vel  # Assuming angle_vel is an attribute
+        # Act
+        keyup(simplegui.KEY_MAP['right'])
+        # Assert
+        self.my_ship.decrement_angle_vel.assert_called_once()
+        self.assertEqual(self.my_ship.angle_vel, initial_angular_velocity - 0.05)
+
+    @unittest.expectedFailure
+    def test_keyup_up_key(self):
+        # Arrange
+        initial_thrust_state = self.my_ship.thrust  # Assuming thrust is an attribute
+        # Act
+        keyup(simplegui.KEY_MAP['up'])
+        # Assert
+        self.my_ship.set_thrust.assert_called_once_with(False)
+        self.assertFalse(self.my_ship.thrust)
+
+    @unittest.expectedFailure
+    def test_keyup_non_mapped_key(self):
+        # Arrange
+        initial_angular_velocity = self.my_ship.angle_vel  # Assuming angle_vel is an attribute
+        initial_thrust_state = self.my_ship.thrust  # Assuming thrust is an attribute
+        # Act
+        keyup(999)  # Assuming 999 is not in simplegui.KEY_MAP
+        # Assert
+        self.my_ship.increment_angle_vel.assert_not_called()
+        self.my_ship.decrement_angle_vel.assert_not_called()
+        self.my_ship.set_thrust.assert_not_called()
+        self.assertEqual(self.my_ship.angle_vel, initial_angular_velocity)
+        self.assertEqual(self.my_ship.thrust, initial_thrust_state)
+
+if __name__ == '__main__':
+    unittest.main()

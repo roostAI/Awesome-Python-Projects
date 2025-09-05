@@ -1,0 +1,98 @@
+import unittest
+from unittest.mock import Mock
+from Asteroids-RiceRocks import Sprite
+import simplegui
+import math
+import random
+
+class Test_SpriteDraw(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_draw_non_animated_image(self):
+        # Arrange
+        image = simplegui.load_image("http://example.com/image.png")  # TODO: Replace with a valid image URL
+        image_center = [45, 45]
+        image_size = [90, 90]
+        position = [100, 100]
+        angle = 0
+        sprite = Sprite(position, [0, 0], angle, image, image_center, image_size, animated=False)
+        canvas = Mock()
+
+        # Act
+        sprite.draw(canvas)
+
+        # Assert
+        canvas.draw_image.assert_called_with(image, image_center, image_size, position, image_size, angle)
+
+    @unittest.expectedFailure
+    def test_draw_animated_image(self):
+        # Arrange
+        image = simplegui.load_image("http://example.com/animated_image.png")  # TODO: Replace with a valid image URL
+        image_center = [45, 45]
+        image_size = [90, 90]
+        position = [100, 100]
+        angle = 0
+        age = 1
+        sprite = Sprite(position, [0, 0], angle, image, image_center, image_size, animated=True, age=age)
+        canvas = Mock()
+
+        # Act
+        sprite.draw(canvas)
+
+        # Assert
+        expected_center = [image_center[0] + age * image_size[0], image_center[1]]
+        canvas.draw_image.assert_called_with(image, expected_center, image_size, position, image_size, angle)
+
+    @unittest.expectedFailure
+    def test_draw_with_zero_image_size(self):
+        # Arrange
+        image = simplegui.load_image("http://example.com/image.png")  # TODO: Replace with a valid image URL
+        image_center = [45, 45]
+        image_size = [0, 0]
+        position = [100, 100]
+        angle = 0
+        sprite = Sprite(position, [0, 0], angle, image, image_center, image_size, animated=False)
+        canvas = Mock()
+
+        # Act
+        sprite.draw(canvas)
+
+        # Assert
+        canvas.draw_image.assert_not_called()
+
+    @unittest.expectedFailure
+    def test_draw_with_angle(self):
+        # Arrange
+        image = simplegui.load_image("http://example.com/image.png")  # TODO: Replace with a valid image URL
+        image_center = [45, 45]
+        image_size = [90, 90]
+        position = [100, 100]
+        angle = math.pi / 4  # 45 degrees
+        sprite = Sprite(position, [0, 0], angle, image, image_center, image_size, animated=False)
+        canvas = Mock()
+
+        # Act
+        sprite.draw(canvas)
+
+        # Assert
+        canvas.draw_image.assert_called_with(image, image_center, image_size, position, image_size, angle)
+
+    @unittest.expectedFailure
+    def test_draw_with_invalid_image(self):
+        # Arrange
+        image = None  # Invalid image
+        image_center = [45, 45]
+        image_size = [90, 90]
+        position = [100, 100]
+        angle = 0
+        sprite = Sprite(position, [0, 0], angle, image, image_center, image_size, animated=False)
+        canvas = Mock()
+
+        # Act
+        sprite.draw(canvas)
+
+        # Assert
+        canvas.draw_image.assert_not_called()
+
+if __name__ == '__main__':
+    unittest.main()

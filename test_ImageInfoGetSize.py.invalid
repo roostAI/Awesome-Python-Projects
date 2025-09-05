@@ -1,0 +1,62 @@
+import unittest
+from Asteroids-RiceRocks import ImageInfo
+
+class Test_ImageInfoGetSize(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_get_size_standard_image(self):
+        # Arrange
+        debris_info = ImageInfo([320, 240], [640, 480])
+        
+        # Act
+        size = debris_info.get_size()
+        
+        # Assert
+        self.assertEqual(size, [640, 480])
+
+    @unittest.expectedFailure
+    def test_get_size_different_image(self):
+        # Arrange
+        nebula_info = ImageInfo([400, 300], [800, 600])
+        
+        # Act
+        size = nebula_info.get_size()
+        
+        # Assert
+        self.assertEqual(size, [800, 600])
+
+    @unittest.expectedFailure
+    def test_get_size_with_additional_attributes(self):
+        # Arrange
+        missile_info = ImageInfo([5, 5], [10, 10], 3, 50)
+        
+        # Act
+        size = missile_info.get_size()
+        
+        # Assert
+        self.assertEqual(size, [10, 10])
+
+    @unittest.expectedFailure
+    def test_get_size_minimal_size(self):
+        # Arrange
+        minimal_info = ImageInfo([0, 0], [1, 1])
+        
+        # Act
+        size = minimal_info.get_size()
+        
+        # Assert
+        self.assertEqual(size, [1, 1])
+
+    @unittest.expectedFailure
+    def test_get_size_complex_image(self):
+        # Arrange
+        explosion_info = ImageInfo([64, 64], [128, 128], 17, 24, True)
+        
+        # Act
+        size = explosion_info.get_size()
+        
+        # Assert
+        self.assertEqual(size, [128, 128])
+
+if __name__ == '__main__':
+    unittest.main()

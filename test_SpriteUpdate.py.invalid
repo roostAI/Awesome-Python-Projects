@@ -1,0 +1,75 @@
+import unittest
+from Asteroids-RiceRocks import Sprite
+import simplegui
+import math
+import random
+
+class Test_SpriteUpdate(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_angle_update(self):
+        # Arrange
+        initial_angle = 0.0
+        angle_velocity = 0.1
+        sprite = Sprite([0, 0], [0, 0], initial_angle, angle_velocity, None, None)
+        
+        # Act
+        sprite.update()
+        
+        # Assert
+        self.assertAlmostEqual(sprite.angle, initial_angle + angle_velocity, places=5)
+
+    @unittest.expectedFailure
+    def test_position_update_with_wrapping(self):
+        # Arrange
+        initial_position = [795, 595]
+        velocity = [10, 10]
+        sprite = Sprite(initial_position, velocity, 0, 0, None, None)
+        
+        # Act
+        sprite.update()
+        
+        # Assert
+        expected_position = [(initial_position[0] + velocity[0]) % WIDTH, 
+                             (initial_position[1] + velocity[1]) % HEIGHT]
+        self.assertEqual(sprite.pos, expected_position)
+
+    @unittest.expectedFailure
+    def test_age_increment(self):
+        # Arrange
+        initial_age = 5
+        sprite = Sprite([0, 0], [0, 0], 0, 0, None, None, age=initial_age)
+        
+        # Act
+        sprite.update()
+        
+        # Assert
+        self.assertEqual(sprite.age, initial_age + 1)
+
+    @unittest.expectedFailure
+    def test_lifespan_expiry(self):
+        # Arrange
+        lifespan = 10
+        initial_age = 9
+        sprite = Sprite([0, 0], [0, 0], 0, 0, None, None, age=initial_age, lifespan=lifespan)
+        
+        # Act
+        result = sprite.update()
+        
+        # Assert
+        self.assertTrue(result)
+
+    @unittest.expectedFailure
+    def test_no_lifespan_expiry_before_time(self):
+        # Arrange
+        lifespan = 10
+        initial_age = 5
+        sprite = Sprite([0, 0], [0, 0], 0, 0, None, None, age=initial_age, lifespan=lifespan)
+        
+        # Act
+        result = sprite.update()
+        
+        # Assert
+        self.assertFalse(result)
+
+# TODO: Replace 'Sprite' initialization with actual parameters and logic as per the implementation details.

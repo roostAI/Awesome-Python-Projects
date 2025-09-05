@@ -1,0 +1,110 @@
+import unittest
+from unittest.mock import patch
+import simplegui
+import random
+from 4Pong import draw, spawn_ball
+
+class Test_4PongDraw(unittest.TestCase):
+
+    @patch('4Pong.ball_pos', [WIDTH // 2, BALL_RADIUS])
+    @patch('4Pong.ball_vel', [0, -1])
+    def test_ball_collision_with_top_wall(self):
+        # Arrange
+        canvas = simplegui.create_frame('Test', WIDTH, HEIGHT).get_canvas()
+        
+        # Act
+        draw(canvas)
+        
+        # Assert
+        self.assertEqual(ball_vel[1], 1)
+
+    @patch('4Pong.ball_pos', [WIDTH // 2, HEIGHT - BALL_RADIUS])
+    @patch('4Pong.ball_vel', [0, 1])
+    def test_ball_collision_with_bottom_wall(self):
+        # Arrange
+        canvas = simplegui.create_frame('Test', WIDTH, HEIGHT).get_canvas()
+        
+        # Act
+        draw(canvas)
+        
+        # Assert
+        self.assertEqual(ball_vel[1], -1)
+
+    @patch('4Pong.ball_pos', [PAD_WIDTH + BALL_RADIUS, paddle1_pos + PAD_HEIGHT // 2])
+    @patch('4Pong.ball_vel', [-1, 0])
+    def test_ball_hits_paddle1(self):
+        # Arrange
+        canvas = simplegui.create_frame('Test', WIDTH, HEIGHT).get_canvas()
+        
+        # Act
+        draw(canvas)
+        
+        # Assert
+        self.assertGreater(ball_vel[0], 0)
+
+    @patch('4Pong.ball_pos', [PAD_WIDTH - BALL_RADIUS, paddle1_pos - 1])
+    @patch('4Pong.ball_vel', [-1, 0])
+    @patch('4Pong.score2', 0)
+    def test_ball_misses_paddle1(self):
+        # Arrange
+        canvas = simplegui.create_frame('Test', WIDTH, HEIGHT).get_canvas()
+        
+        # Act
+        draw(canvas)
+        
+        # Assert
+        self.assertEqual(score2, 1)
+
+    @patch('4Pong.ball_pos', [WIDTH - PAD_WIDTH - BALL_RADIUS, paddle2_pos + PAD_HEIGHT // 2])
+    @patch('4Pong.ball_vel', [1, 0])
+    def test_ball_hits_paddle2(self):
+        # Arrange
+        canvas = simplegui.create_frame('Test', WIDTH, HEIGHT).get_canvas()
+        
+        # Act
+        draw(canvas)
+        
+        # Assert
+        self.assertLess(ball_vel[0], 0)
+
+    @patch('4Pong.ball_pos', [WIDTH - PAD_WIDTH + BALL_RADIUS, paddle2_pos - 1])
+    @patch('4Pong.ball_vel', [1, 0])
+    @patch('4Pong.score1', 0)
+    def test_ball_misses_paddle2(self):
+        # Arrange
+        canvas = simplegui.create_frame('Test', WIDTH, HEIGHT).get_canvas()
+        
+        # Act
+        draw(canvas)
+        
+        # Assert
+        self.assertEqual(score1, 1)
+
+    @patch('4Pong.paddle1_pos', 0)
+    @patch('4Pong.paddle1_vel', 1)
+    def test_paddle1_movement_within_bounds(self):
+        # Arrange
+        canvas = simplegui.create_frame('Test', WIDTH, HEIGHT).get_canvas()
+        
+        # Act
+        draw(canvas)
+        
+        # Assert
+        self.assertGreaterEqual(paddle1_pos, 0)
+        self.assertLessEqual(paddle1_pos + PAD_HEIGHT, HEIGHT)
+
+    @patch('4Pong.paddle2_pos', 0)
+    @patch('4Pong.paddle2_vel', 1)
+    def test_paddle2_movement_within_bounds(self):
+        # Arrange
+        canvas = simplegui.create_frame('Test', WIDTH, HEIGHT).get_canvas()
+        
+        # Act
+        draw(canvas)
+        
+        # Assert
+        self.assertGreaterEqual(paddle2_pos, 0)
+        self.assertLessEqual(paddle2_pos + PAD_HEIGHT, HEIGHT)
+
+if __name__ == '__main__':
+    unittest.main()

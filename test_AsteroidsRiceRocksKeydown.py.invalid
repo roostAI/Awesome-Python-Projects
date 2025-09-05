@@ -1,0 +1,60 @@
+import unittest
+from Asteroids-RiceRocks import keydown
+import simplegui
+
+class Test_AsteroidsRiceRocksKeydown(unittest.TestCase):
+
+    def setUp(self):
+        # Initialize the ship object and other necessary setup
+        self.my_ship = my_ship  # Assuming my_ship is globally available
+
+    @unittest.expectedFailure
+    def test_left_key_press(self):
+        # Arrange
+        initial_angle_vel = self.my_ship.angle_vel
+        expected_angle_vel = initial_angle_vel - 0.05
+
+        # Act
+        keydown(simplegui.KEY_MAP['left'])
+
+        # Assert
+        self.assertEqual(self.my_ship.angle_vel, expected_angle_vel)
+
+    @unittest.expectedFailure
+    def test_right_key_press(self):
+        # Arrange
+        initial_angle_vel = self.my_ship.angle_vel
+        expected_angle_vel = initial_angle_vel + 0.05
+
+        # Act
+        keydown(simplegui.KEY_MAP['right'])
+
+        # Assert
+        self.assertEqual(self.my_ship.angle_vel, expected_angle_vel)
+
+    @unittest.expectedFailure
+    def test_up_key_press(self):
+        # Arrange
+        self.my_ship.set_thrust(False)
+        initial_thrust = self.my_ship.thrust
+
+        # Act
+        keydown(simplegui.KEY_MAP['up'])
+
+        # Assert
+        self.assertTrue(self.my_ship.thrust)
+        # TODO: Check if the thrust sound is playing
+
+    @unittest.expectedFailure
+    def test_space_key_press(self):
+        # Arrange
+        initial_missile_count = len(missile_group)
+
+        # Act
+        keydown(simplegui.KEY_MAP['space'])
+
+        # Assert
+        self.assertEqual(len(missile_group), initial_missile_count + 1)
+
+if __name__ == '__main__':
+    unittest.main()

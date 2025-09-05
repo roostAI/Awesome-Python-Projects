@@ -1,0 +1,108 @@
+import unittest
+from 5_Memory import mouseclick
+import simplegui
+import random
+
+class Test_5MemoryMouseclick(unittest.TestCase):
+
+    def setUp(self):
+        global deck, exposed, card1, card2, state, turns
+        deck = list(range(8)) * 2
+        random.shuffle(deck)
+        exposed = [False] * 16
+        card1 = 0
+        card2 = 0
+        state = 0
+        turns = 0
+
+    @unittest.expectedFailure
+    def test_initial_state_click(self):
+        # Arrange
+        self.setUp()
+        pos = (25, 0)  # Click on the first card
+
+        # Act
+        mouseclick(pos)
+
+        # Assert
+        self.assertEqual(state, 1)
+        self.assertEqual(card1, 0)
+        self.assertTrue(exposed[0])
+
+    @unittest.expectedFailure
+    def test_second_card_click(self):
+        # Arrange
+        self.setUp()
+        pos1 = (25, 0)  # Click on the first card
+        mouseclick(pos1)
+        pos2 = (75, 0)  # Click on the second card
+
+        # Act
+        mouseclick(pos2)
+
+        # Assert
+        self.assertEqual(state, 2)
+        self.assertEqual(card2, 1)
+        self.assertEqual(turns, 1)
+        self.assertTrue(exposed[1])
+
+    @unittest.expectedFailure
+    def test_matching_cards_click(self):
+        # Arrange
+        self.setUp()
+        deck[0] = deck[1]  # Ensure the first two cards match
+        pos1 = (25, 0)  # Click on the first card
+        mouseclick(pos1)
+        pos2 = (75, 0)  # Click on the second card
+        mouseclick(pos2)
+        pos3 = (125, 0)  # Click on a new card
+
+        # Act
+        mouseclick(pos3)
+
+        # Assert
+        self.assertEqual(state, 1)
+        self.assertEqual(card1, 2)
+        self.assertTrue(exposed[0])
+        self.assertTrue(exposed[1])
+
+    @unittest.expectedFailure
+    def test_non_matching_cards_click(self):
+        # Arrange
+        self.setUp()
+        deck[0] = 0
+        deck[1] = 1  # Ensure the first two cards do not match
+        pos1 = (25, 0)  # Click on the first card
+        mouseclick(pos1)
+        pos2 = (75, 0)  # Click on the second card
+        mouseclick(pos2)
+        pos3 = (125, 0)  # Click on a new card
+
+        # Act
+        mouseclick(pos3)
+
+        # Assert
+        self.assertEqual(state, 1)
+        self.assertEqual(card1, 2)
+        self.assertFalse(exposed[0])
+        self.assertFalse(exposed[1])
+
+    @unittest.expectedFailure
+    def test_click_on_exposed_card(self):
+        # Arrange
+        self.setUp()
+        pos1 = (25, 0)  # Click on the first card
+        mouseclick(pos1)
+        pos2 = (25, 0)  # Click on the same card again
+
+        # Act
+        mouseclick(pos2)
+
+        # Assert
+        self.assertEqual(state, 1)
+        self.assertEqual(card1, 0)
+        self.assertEqual(turns, 0)
+        self.assertTrue(exposed[0])
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,0 +1,67 @@
+import unittest
+from Asteroids-RiceRocks import Ship
+
+class Test_ShipGetPosition(unittest.TestCase):
+
+    def test_get_position_returns_correct_position(self):
+        # Scenario 1: Verify Correct Position Retrieval
+        # Arrange
+        initial_position = [400, 300]
+        ship = Ship(initial_position, [0, 0], 0, ship_image, ship_info)
+        
+        # Act
+        position = ship.get_position()
+        
+        # Assert
+        self.assertEqual(position, initial_position)
+
+    def test_get_position_after_movement(self):
+        # Scenario 2: Verify Position Consistency After Movement
+        # Arrange
+        initial_position = [400, 300]
+        ship = Ship(initial_position, [0, 0], 0, ship_image, ship_info)
+        
+        # Simulate movement by updating the position directly
+        new_position = [450, 350]
+        ship.pos = new_position
+        
+        # Act
+        position = ship.get_position()
+        
+        # Assert
+        self.assertEqual(position, new_position)
+
+    def test_get_position_multiple_objects(self):
+        # Scenario 3: Verify Position Retrieval for Multiple Objects
+        # Arrange
+        position1 = [100, 100]
+        position2 = [200, 200]
+        ship1 = Ship(position1, [0, 0], 0, ship_image, ship_info)
+        ship2 = Ship(position2, [0, 0], 0, ship_image, ship_info)
+        
+        # Act
+        position1_result = ship1.get_position()
+        position2_result = ship2.get_position()
+        
+        # Assert
+        self.assertEqual(position1_result, position1)
+        self.assertEqual(position2_result, position2)
+
+    def test_get_position_edge_cases(self):
+        # Scenario 4: Verify Position Retrieval with Edge Case Values
+        # Arrange
+        edge_position1 = [0, 0]
+        edge_position2 = [WIDTH, HEIGHT]
+        ship1 = Ship(edge_position1, [0, 0], 0, ship_image, ship_info)
+        ship2 = Ship(edge_position2, [0, 0], 0, ship_image, ship_info)
+        
+        # Act
+        position1_result = ship1.get_position()
+        position2_result = ship2.get_position()
+        
+        # Assert
+        self.assertEqual(position1_result, edge_position1)
+        self.assertEqual(position2_result, edge_position2)
+
+if __name__ == '__main__':
+    unittest.main()

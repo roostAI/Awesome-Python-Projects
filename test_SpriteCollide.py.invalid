@@ -1,0 +1,66 @@
+import unittest
+from Asteroids-RiceRocks import Sprite
+import simplegui
+import math
+import random
+
+class Test_SpriteCollide(unittest.TestCase):
+
+    def test_collision_with_overlapping_objects(self):
+        # Arrange
+        object1 = Sprite([100, 100], [0, 0], 0, None, None, 10)
+        object2 = Sprite([105, 105], [0, 0], 0, None, None, 10)
+        
+        # Act
+        collision_detected = object1.collide(object2)
+        
+        # Assert
+        self.assertTrue(collision_detected, "Collision should be detected for overlapping objects.")
+
+    def test_no_collision_with_distant_objects(self):
+        # Arrange
+        object1 = Sprite([100, 100], [0, 0], 0, None, None, 10)
+        object2 = Sprite([200, 200], [0, 0], 0, None, None, 10)
+        
+        # Act
+        collision_detected = object1.collide(object2)
+        
+        # Assert
+        self.assertFalse(collision_detected, "No collision should be detected for distant objects.")
+
+    def test_collision_at_exact_radius_sum(self):
+        # Arrange
+        object1 = Sprite([100, 100], [0, 0], 0, None, None, 10)
+        object2 = Sprite([120, 100], [0, 0], 0, None, None, 10)
+        
+        # Act
+        collision_detected = object1.collide(object2)
+        
+        # Assert
+        self.assertTrue(collision_detected, "Collision should be detected when objects are at exact radius sum.")
+
+    def test_collision_with_zero_radius_objects(self):
+        # Arrange
+        object1 = Sprite([100, 100], [0, 0], 0, None, None, 0)
+        object2 = Sprite([100, 100], [0, 0], 0, None, None, 0)
+        
+        # Act
+        collision_detected = object1.collide(object2)
+        
+        # Assert
+        self.assertTrue(collision_detected, "Collision should be detected for zero radius objects at the same position.")
+
+    def test_no_collision_with_negative_radius(self):
+        # Arrange
+        object1 = Sprite([100, 100], [0, 0], 0, None, None, -10)
+        object2 = Sprite([200, 200], [0, 0], 0, None, None, 10)
+        
+        # Act
+        collision_detected = object1.collide(object2)
+        
+        # Assert
+        self.assertFalse(collision_detected, "No collision should be detected when one object has a negative radius.")
+
+# To run the tests
+if __name__ == '__main__':
+    unittest.main()

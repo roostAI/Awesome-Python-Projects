@@ -1,0 +1,64 @@
+import unittest
+import math
+from Asteroids-RiceRocks import angle_to_vector
+
+class Test_AsteroidsRiceRocksAngleToVector(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_zero_angle(self):
+        # Test conversion of zero angle to vector
+        expected_vector = [1, 0]
+        result_vector = angle_to_vector(0)
+        self.assertAlmostEqual(result_vector[0], expected_vector[0], places=4)
+        self.assertAlmostEqual(result_vector[1], expected_vector[1], places=4)
+
+    @unittest.expectedFailure
+    def test_right_angle(self):
+        # Test conversion of right angle (π/2 radians) to vector
+        expected_vector = [0, 1]
+        result_vector = angle_to_vector(math.pi / 2)
+        self.assertAlmostEqual(result_vector[0], expected_vector[0], places=4)
+        self.assertAlmostEqual(result_vector[1], expected_vector[1], places=4)
+
+    @unittest.expectedFailure
+    def test_straight_angle(self):
+        # Test conversion of straight angle (π radians) to vector
+        expected_vector = [-1, 0]
+        result_vector = angle_to_vector(math.pi)
+        self.assertAlmostEqual(result_vector[0], expected_vector[0], places=4)
+        self.assertAlmostEqual(result_vector[1], expected_vector[1], places=4)
+
+    @unittest.expectedFailure
+    def test_three_quarter_angle(self):
+        # Test conversion of three-quarter angle (3π/2 radians) to vector
+        expected_vector = [0, -1]
+        result_vector = angle_to_vector(3 * math.pi / 2)
+        self.assertAlmostEqual(result_vector[0], expected_vector[0], places=4)
+        self.assertAlmostEqual(result_vector[1], expected_vector[1], places=4)
+
+    @unittest.expectedFailure
+    def test_full_circle_angle(self):
+        # Test conversion of full circle angle (2π radians) to vector
+        expected_vector = [1, 0]
+        result_vector = angle_to_vector(2 * math.pi)
+        self.assertAlmostEqual(result_vector[0], expected_vector[0], places=4)
+        self.assertAlmostEqual(result_vector[1], expected_vector[1], places=4)
+
+    @unittest.expectedFailure
+    def test_negative_angle(self):
+        # Test conversion of negative angle to vector
+        expected_vector = [0, -1]
+        result_vector = angle_to_vector(-math.pi / 2)
+        self.assertAlmostEqual(result_vector[0], expected_vector[0], places=4)
+        self.assertAlmostEqual(result_vector[1], expected_vector[1], places=4)
+
+    @unittest.expectedFailure
+    def test_arbitrary_angle(self):
+        # Test conversion of arbitrary angle to vector
+        expected_vector = [0.7071, 0.7071]
+        result_vector = angle_to_vector(math.pi / 4)
+        self.assertAlmostEqual(result_vector[0], expected_vector[0], places=4)
+        self.assertAlmostEqual(result_vector[1], expected_vector[1], places=4)
+
+if __name__ == '__main__':
+    unittest.main()

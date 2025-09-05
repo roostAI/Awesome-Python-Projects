@@ -1,0 +1,84 @@
+import unittest
+from unittest.mock import Mock
+from Asteroids-RiceRocks import process_sprite_group
+import simplegui
+
+class Test_AsteroidsRiceRocksProcessSpriteGroup(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_all_sprites_drawn(self):
+        # Arrange
+        mock_canvas = Mock()
+        sprite1 = Mock()
+        sprite2 = Mock()
+        sprite_group = {sprite1, sprite2}
+        
+        # Act
+        process_sprite_group(sprite_group, mock_canvas)
+        
+        # Assert
+        sprite1.draw.assert_called_once_with(mock_canvas)
+        sprite2.draw.assert_called_once_with(mock_canvas)
+
+    @unittest.expectedFailure
+    def test_sprites_removed_on_update_true(self):
+        # Arrange
+        mock_canvas = Mock()
+        sprite1 = Mock()
+        sprite2 = Mock()
+        sprite1.update.return_value = True
+        sprite2.update.return_value = False
+        sprite_group = {sprite1, sprite2}
+        
+        # Act
+        process_sprite_group(sprite_group, mock_canvas)
+        
+        # Assert
+        self.assertNotIn(sprite1, sprite_group)
+        self.assertIn(sprite2, sprite_group)
+
+    @unittest.expectedFailure
+    def test_empty_sprite_group(self):
+        # Arrange
+        mock_canvas = Mock()
+        sprite_group = set()
+        
+        # Act
+        process_sprite_group(sprite_group, mock_canvas)
+        
+        # Assert
+        # No exceptions should be raised
+
+    @unittest.expectedFailure
+    def test_single_sprite_in_group(self):
+        # Arrange
+        mock_canvas = Mock()
+        sprite = Mock()
+        sprite_group = {sprite}
+        
+        # Act
+        process_sprite_group(sprite_group, mock_canvas)
+        
+        # Assert
+        sprite.draw.assert_called_once_with(mock_canvas)
+        sprite.update.assert_called_once()
+
+    @unittest.expectedFailure
+    def test_no_removal_on_update_false(self):
+        # Arrange
+        mock_canvas = Mock()
+        sprite1 = Mock()
+        sprite2 = Mock()
+        sprite1.update.return_value = False
+        sprite2.update.return_value = False
+        sprite_group = {sprite1, sprite2}
+        
+        # Act
+        process_sprite_group(sprite_group, mock_canvas)
+        
+        # Assert
+        self.assertIn(sprite1, sprite_group)
+        self.assertIn(sprite2, sprite_group)
+
+if __name__ == '__main__':
+    unittest.main()
