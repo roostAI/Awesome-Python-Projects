@@ -1,0 +1,88 @@
+import unittest
+from unittest.mock import patch
+from 4 import Pong, new_game
+import random
+
+class Test_4PongNewGame(unittest.TestCase):
+
+    @patch('4.spawn_ball')
+    def test_initial_scores(self, mock_spawn_ball):
+        # Arrange
+        global score1, score2
+        score1 = 5  # Set to non-default value
+        score2 = 3  # Set to non-default value
+
+        # Act
+        new_game()
+
+        # Assert
+        self.assertEqual(score1, 0, "Score1 should be initialized to 0")
+        self.assertEqual(score2, 0, "Score2 should be initialized to 0")
+
+    @patch('4.spawn_ball')
+    def test_initial_paddle_positions(self, mock_spawn_ball):
+        # Arrange
+        global paddle1_pos, paddle2_pos
+        paddle1_pos = 100  # Set to non-default value
+        paddle2_pos = 150  # Set to non-default value
+
+        # Act
+        new_game()
+
+        # Assert
+        expected_position = HEIGHT // 2 - 10
+        self.assertEqual(paddle1_pos, expected_position, "Paddle1 position should be initialized correctly")
+        self.assertEqual(paddle2_pos, expected_position, "Paddle2 position should be initialized correctly")
+
+    @patch('4.spawn_ball')
+    def test_initial_paddle_velocities(self, mock_spawn_ball):
+        # Arrange
+        global paddle1_vel, paddle2_vel
+        paddle1_vel = 5  # Set to non-default value
+        paddle2_vel = -3  # Set to non-default value
+
+        # Act
+        new_game()
+
+        # Assert
+        self.assertEqual(paddle1_vel, 0, "Paddle1 velocity should be initialized to 0")
+        self.assertEqual(paddle2_vel, 0, "Paddle2 velocity should be initialized to 0")
+
+    @patch('4.spawn_ball')
+    def test_ball_spawn_direction(self, mock_spawn_ball):
+        # Arrange
+        mock_spawn_ball.reset_mock()
+
+        # Act
+        new_game()
+
+        # Assert
+        mock_spawn_ball.assert_called_once()
+        args, _ = mock_spawn_ball.call_args
+        self.assertIn(args[0], [True, False], "Ball should spawn in a random direction (True or False)")
+
+    @patch('4.spawn_ball')
+    def test_global_variable_reset(self, mock_spawn_ball):
+        # Arrange
+        global score1, score2, paddle1_pos, paddle2_pos, paddle1_vel, paddle2_vel
+        score1 = 5
+        score2 = 3
+        paddle1_pos = 100
+        paddle2_pos = 150
+        paddle1_vel = 5
+        paddle2_vel = -3
+
+        # Act
+        new_game()
+
+        # Assert
+        self.assertEqual(score1, 0, "Score1 should be reset to 0")
+        self.assertEqual(score2, 0, "Score2 should be reset to 0")
+        expected_position = HEIGHT // 2 - 10
+        self.assertEqual(paddle1_pos, expected_position, "Paddle1 position should be reset correctly")
+        self.assertEqual(paddle2_pos, expected_position, "Paddle2 position should be reset correctly")
+        self.assertEqual(paddle1_vel, 0, "Paddle1 velocity should be reset to 0")
+        self.assertEqual(paddle2_vel, 0, "Paddle2 velocity should be reset to 0")
+
+if __name__ == '__main__':
+    unittest.main()

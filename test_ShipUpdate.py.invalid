@@ -1,0 +1,104 @@
+import unittest
+from Asteroids-RiceRocks import Ship
+import math
+
+class Test_ShipUpdate(unittest.TestCase):
+
+    def setUp(self):
+        self.ship_image = simplegui.load_image("http://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/double_ship.png")
+        self.ship_info = ImageInfo([45, 45], [90, 90], 35)
+
+    @unittest.expectedFailure
+    def test_angle_update(self):
+        # Arrange
+        initial_angle = 0.0
+        angle_velocity = 0.1
+        ship = Ship([400, 300], [0, 0], initial_angle, self.ship_image, self.ship_info)
+        ship.angle_vel = angle_velocity
+        
+        # Act
+        ship.update()
+        
+        # Assert
+        expected_angle = initial_angle + angle_velocity
+        self.assertAlmostEqual(ship.angle, expected_angle, places=5)
+
+    @unittest.expectedFailure
+    def test_position_update_with_wrapping(self):
+        # Arrange
+        initial_position = [795, 595]
+        velocity = [10, 10]
+        ship = Ship(initial_position, velocity, 0, self.ship_image, self.ship_info)
+        
+        # Act
+        ship.update()
+        
+        # Assert
+        expected_position = [(initial_position[0] + velocity[0]) % WIDTH, (initial_position[1] + velocity[1]) % HEIGHT]
+        self.assertEqual(ship.pos, expected_position)
+
+    @unittest.expectedFailure
+    def test_velocity_update_with_thrust(self):
+        # Arrange
+        initial_velocity = [0, 0]
+        initial_angle = math.pi / 4  # 45 degrees
+        ship = Ship([400, 300], initial_velocity, initial_angle, self.ship_image, self.ship_info)
+        ship.thrust = True
+        
+        # Act
+        ship.update()
+        
+        # Assert
+        acc = angle_to_vector(initial_angle)
+        expected_velocity = [initial_velocity[0] + acc[0] * 0.1, initial_velocity[1] + acc[1] * 0.1]
+        self.assertAlmostEqual(ship.vel[0], expected_velocity[0] * 0.99, places=5)
+        self.assertAlmostEqual(ship.vel[1], expected_velocity[1] * 0.99, places=5)
+
+    @unittest.expectedFailure
+    def test_velocity_update_without_thrust(self):
+        # Arrange
+        initial_velocity = [1, 1]
+        ship = Ship([400, 300], initial_velocity, 0, self.ship_image, self.ship_info)
+        ship.thrust = False
+        
+        # Act
+        ship.update()
+        
+        # Assert
+        expected_velocity = [initial_velocity[0] * 0.99, initial_velocity[1] * 0.99]
+        self.assertAlmostEqual(ship.vel[0], expected_velocity[0], places=5)
+        self.assertAlmostEqual(ship.vel[1], expected_velocity[1], places=5)
+
+    @unittest.expectedFailure
+    def test_combined_update(self):
+        # Arrange
+        initial_angle = 0.0
+        angle_velocity = 0.1
+        initial_position = [795, 595]
+        velocity = [1, 1]
+        ship = Ship(initial_position, velocity, initial_angle, self.ship_image, self.ship_info)
+        ship.angle_vel = angle_velocity
+        ship.thrust = True
+        
+        # Act
+        ship.update()
+        
+        # Assert
+        # Check angle update
+        expected_angle = initial_angle + angle_velocity
+        self.assertAlmostEqual(ship.angle, expected_angle, places=5)
+        
+        # Check position update with wrapping
+        expected_position = [(initial_position[0] + velocity[0]) % WIDTH, (initial_position[1] + velocity[1]) % HEIGHT]
+        self.assertEqual(ship.pos, expected_position)
+        
+        # Check velocity update with thrust
+        acc = angle_to_vector(expected_angle)
+        expected_velocity = [velocity[0] + acc[0] * 0.1, velocity[1] + acc[1] * 0.1]
+        self.assertAlmostEqual(ship.vel[0], expected_velocity[0] * 0.99, places=5)
+        self.assertAlmostEqual(ship.vel[1], expected_velocity[1] * 0.99, places=5)
+
+# TODO: Add more tests if necessary
+
+if __name__ == '__main__':
+    unittest.main()

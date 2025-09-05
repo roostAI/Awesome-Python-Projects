@@ -1,0 +1,84 @@
+import unittest
+from Asteroids-RiceRocks import group_group_collide, Sprite, asteroid_info, explosion_info, explosion_sound
+import simplegui
+import math
+import random
+
+class Test_AsteroidsRiceRocksGroupGroupCollide(unittest.TestCase):
+
+    @unittest.skip("Skipping smoke test")
+    def test_smoke(self):
+        pass
+
+    @unittest.tag('regression', 'positive')
+    def test_no_collisions_between_groups(self):
+        # Arrange
+        group1 = {Sprite([100, 100], [0, 0], 0, 0, None, asteroid_info)}
+        group2 = {Sprite([300, 300], [0, 0], 0, 0, None, asteroid_info)}
+        
+        # Act
+        result = group_group_collide(group1, group2)
+        
+        # Assert
+        self.assertEqual(result, 0)
+
+    @unittest.tag('regression', 'positive')
+    def test_single_collision_between_groups(self):
+        # Arrange
+        group1 = {Sprite([100, 100], [0, 0], 0, 0, None, asteroid_info)}
+        group2 = {Sprite([100, 100], [0, 0], 0, 0, None, asteroid_info)}
+        
+        # Act
+        result = group_group_collide(group1, group2)
+        
+        # Assert
+        self.assertEqual(result, 1)
+
+    @unittest.tag('regression', 'positive')
+    def test_multiple_collisions_between_groups(self):
+        # Arrange
+        group1 = {
+            Sprite([100, 100], [0, 0], 0, 0, None, asteroid_info),
+            Sprite([200, 200], [0, 0], 0, 0, None, asteroid_info)
+        }
+        group2 = {
+            Sprite([100, 100], [0, 0], 0, 0, None, asteroid_info),
+            Sprite([200, 200], [0, 0], 0, 0, None, asteroid_info)
+        }
+        
+        # Act
+        result = group_group_collide(group1, group2)
+        
+        # Assert
+        self.assertEqual(result, 2)
+
+    @unittest.tag('regression', 'positive')
+    def test_collision_removal_from_group1(self):
+        # Arrange
+        sprite1 = Sprite([100, 100], [0, 0], 0, 0, None, asteroid_info)
+        group1 = {sprite1}
+        group2 = {Sprite([100, 100], [0, 0], 0, 0, None, asteroid_info)}
+        
+        # Act
+        result = group_group_collide(group1, group2)
+        
+        # Assert
+        self.assertEqual(result, 1)
+        self.assertNotIn(sprite1, group1)
+
+    @unittest.tag('regression', 'positive')
+    def test_no_side_effects_on_group2(self):
+        # Arrange
+        group1 = {Sprite([100, 100], [0, 0], 0, 0, None, asteroid_info)}
+        sprite2 = Sprite([100, 100], [0, 0], 0, 0, None, asteroid_info)
+        group2 = {sprite2}
+        group2_initial = group2.copy()
+        
+        # Act
+        group_group_collide(group1, group2)
+        
+        # Assert
+        self.assertEqual(group2, group2_initial)
+
+if __name__ == '__main__':
+    unittest.main()

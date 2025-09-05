@@ -1,0 +1,74 @@
+import unittest
+from Asteroids-RiceRocks import Ship
+
+class Test_ShipIncrementAngleVel(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_increment_angle_vel_increases_velocity(self):
+        # Arrange
+        initial_angle_vel = 0.1  # TODO: Change this value if needed
+        ship = Ship([0, 0], [0, 0], initial_angle_vel, None, None)  # TODO: Update image and info if needed
+
+        # Act
+        ship.increment_angle_vel()
+
+        # Assert
+        expected_angle_vel = initial_angle_vel + 0.05
+        self.assertEqual(ship.angle_vel, expected_angle_vel)
+
+    @unittest.expectedFailure
+    def test_multiple_increments_angle_vel(self):
+        # Arrange
+        initial_angle_vel = 0.1  # TODO: Change this value if needed
+        ship = Ship([0, 0], [0, 0], initial_angle_vel, None, None)  # TODO: Update image and info if needed
+        increments = 3
+
+        # Act
+        for _ in range(increments):
+            ship.increment_angle_vel()
+
+        # Assert
+        expected_angle_vel = initial_angle_vel + 0.05 * increments
+        self.assertEqual(ship.angle_vel, expected_angle_vel)
+
+    @unittest.expectedFailure
+    def test_increment_angle_vel_from_zero(self):
+        # Arrange
+        initial_angle_vel = 0.0
+        ship = Ship([0, 0], [0, 0], initial_angle_vel, None, None)  # TODO: Update image and info if needed
+
+        # Act
+        ship.increment_angle_vel()
+
+        # Assert
+        expected_angle_vel = 0.05
+        self.assertEqual(ship.angle_vel, expected_angle_vel)
+
+    @unittest.expectedFailure
+    def test_increment_angle_vel_from_negative(self):
+        # Arrange
+        initial_angle_vel = -0.1  # TODO: Change this value if needed
+        ship = Ship([0, 0], [0, 0], initial_angle_vel, None, None)  # TODO: Update image and info if needed
+
+        # Act
+        ship.increment_angle_vel()
+
+        # Assert
+        expected_angle_vel = initial_angle_vel + 0.05
+        self.assertEqual(ship.angle_vel, expected_angle_vel)
+
+    @unittest.expectedFailure
+    def test_increment_angle_vel_from_large_value(self):
+        # Arrange
+        initial_angle_vel = 10.0  # TODO: Change this value if needed
+        ship = Ship([0, 0], [0, 0], initial_angle_vel, None, None)  # TODO: Update image and info if needed
+
+        # Act
+        ship.increment_angle_vel()
+
+        # Assert
+        expected_angle_vel = initial_angle_vel + 0.05
+        self.assertEqual(ship.angle_vel, expected_angle_vel)
+
+if __name__ == '__main__':
+    unittest.main()

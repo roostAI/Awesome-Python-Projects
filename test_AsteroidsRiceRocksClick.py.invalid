@@ -1,0 +1,86 @@
+import unittest
+from unittest.mock import MagicMock, patch
+from Asteroids-RiceRocks import click
+
+class Test_AsteroidsRiceRocksClick(unittest.TestCase):
+
+    @patch('Asteroids-RiceRocks.splash_info.get_size')
+    @patch('Asteroids-RiceRocks.soundtrack')
+    def test_click_starts_game_within_splash(self, mock_soundtrack, mock_get_size):
+        # Arrange
+        global started, lives, score
+        started = False
+        lives = 0
+        score = 0
+        mock_get_size.return_value = [400, 300]  # Mock splash size
+        pos = [400, 300]  # Position within splash area
+
+        # Act
+        click(pos)
+
+        # Assert
+        self.assertTrue(started)
+        self.assertEqual(lives, 3)
+        self.assertEqual(score, 0)
+        mock_soundtrack.rewind.assert_called_once()
+        mock_soundtrack.play.assert_called_once()
+
+    @patch('Asteroids-RiceRocks.splash_info.get_size')
+    def test_click_does_not_start_game_outside_splash(self, mock_get_size):
+        # Arrange
+        global started, lives, score
+        started = False
+        lives = 0
+        score = 0
+        mock_get_size.return_value = [400, 300]  # Mock splash size
+        pos = [800, 600]  # Position outside splash area
+
+        # Act
+        click(pos)
+
+        # Assert
+        self.assertFalse(started)
+        self.assertNotEqual(lives, 3)
+        self.assertNotEqual(score, 0)
+
+    @patch('Asteroids-RiceRocks.splash_info.get_size')
+    @patch('Asteroids-RiceRocks.soundtrack')
+    def test_click_no_effect_when_game_started(self, mock_soundtrack, mock_get_size):
+        # Arrange
+        global started, lives, score
+        started = True
+        lives = 3
+        score = 10
+        mock_get_size.return_value = [400, 300]  # Mock splash size
+        pos = [400, 300]  # Position within splash area
+
+        # Act
+        click(pos)
+
+        # Assert
+        self.assertTrue(started)
+        self.assertEqual(lives, 3)
+        self.assertEqual(score, 10)
+        mock_soundtrack.rewind.assert_not_called()
+        mock_soundtrack.play.assert_not_called()
+
+    @patch('Asteroids-RiceRocks.splash_info.get_size')
+    def test_click_invalid_splash_size(self, mock_get_size):
+        # Arrange
+        global started, lives, score
+        started = False
+        lives = 0
+        score = 0
+        mock_get_size.return_value = [-1, -1]  # Mock invalid splash size
+        pos = [400, 300]  # Any position
+
+        # Act
+        click(pos)
+
+        # Assert
+        self.assertFalse(started)
+        self.assertNotEqual(lives, 3)
+        self.assertNotEqual(score, 0)
+
+if __name__ == '__main__':
+    unittest.main()

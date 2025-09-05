@@ -1,0 +1,78 @@
+import unittest
+from unittest.mock import patch
+from Asteroids-RiceRocks import rock_spawner
+import random
+import simplegui
+import math
+
+class Test_AsteroidsRiceRocksRockSpawner(unittest.TestCase):
+
+    @patch('Asteroids-RiceRocks.started', True)
+    @patch('Asteroids-RiceRocks.rock_group', set())
+    def test_rock_spawning_when_started(self):
+        # Arrange
+        initial_rock_count = len(rock_group)
+        
+        # Act
+        rock_spawner()
+        
+        # Assert
+        self.assertEqual(len(rock_group), initial_rock_count + 1, "Rock should be spawned when game is started.")
+
+    @patch('Asteroids-RiceRocks.started', False)
+    @patch('Asteroids-RiceRocks.rock_group', set())
+    def test_no_rock_spawning_when_not_started(self):
+        # Arrange
+        initial_rock_count = len(rock_group)
+        
+        # Act
+        rock_spawner()
+        
+        # Assert
+        self.assertEqual(len(rock_group), initial_rock_count, "No rock should be spawned when game is not started.")
+
+    @patch('Asteroids-RiceRocks.started', True)
+    @patch('Asteroids-RiceRocks.rock_group', set([Sprite([0, 0], [0, 0], 0, 0, None, None) for _ in range(12)]))
+    def test_rock_group_size_limit(self):
+        # Arrange
+        initial_rock_count = len(rock_group)
+        
+        # Act
+        rock_spawner()
+        
+        # Assert
+        self.assertEqual(len(rock_group), initial_rock_count, "Rock group size should not exceed 12.")
+
+    @patch('Asteroids-RiceRocks.started', True)
+    @patch('Asteroids-RiceRocks.rock_group', set())
+    @patch('Asteroids-RiceRocks.my_ship.get_position', return_value=[400, 300])
+    def test_rock_spawn_distance_from_ship(self, mock_get_position):
+        # Arrange
+        initial_rock_count = len(rock_group)
+        
+        # Act
+        rock_spawner()
+        
+        # Assert
+        for rock in rock_group:
+            self.assertGreater(dist(rock.get_position(), mock_get_position()), 10, "Rocks should not spawn within 10 units of the ship.")
+
+    @patch('Asteroids-RiceRocks.started', True)
+    @patch('Asteroids-RiceRocks.rock_group', set())
+    @patch('Asteroids-RiceRocks.score', 10)  # TODO: Adjust score as needed for testing
+    def test_rock_velocity_based_on_score(self):
+        # Arrange
+        initial_rock_count = len(rock_group)
+        
+        # Act
+        rock_spawner()
+        
+        # Assert
+        self.assertEqual(len(rock_group), initial_rock_count + 1, "Rock should be spawned.")
+        for rock in rock_group:
+            expected_velocity = [(random.random() * .6 - .3) + score/5.0 , (random.random() * .6 - .3) + score/5.0]
+            self.assertAlmostEqual(rock.vel[0], expected_velocity[0], delta=0.1, msg="Rock velocity should reflect score influence.")
+            self.assertAlmostEqual(rock.vel[1], expected_velocity[1], delta=0.1, msg="Rock velocity should reflect score influence.")
+
+if __name__ == '__main__':
+    unittest.main()

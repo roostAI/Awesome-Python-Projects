@@ -1,0 +1,124 @@
+import unittest
+from unittest.mock import Mock, call
+from Asteroids-RiceRocks import draw, group_collide, group_group_collide, process_sprite_group, my_ship, rock_group, missile_group, explosion_group
+import simplegui
+
+class Test_AsteroidsRiceRocksDraw(unittest.TestCase):
+
+    def setUp(self):
+        self.canvas = Mock()
+
+    @unittest.expectedFailure
+    def test_background_animation(self):
+        # Arrange
+        global time, WIDTH, HEIGHT, debris_info, nebula_info
+        time = 0
+        WIDTH = 800
+        HEIGHT = 600
+        debris_info = Mock()
+        nebula_info = Mock()
+        debris_info.get_center.return_value = [320, 240]
+        debris_info.get_size.return_value = [640, 480]
+        nebula_info.get_center.return_value = [400, 300]
+        nebula_info.get_size.return_value = [800, 600]
+
+        # Act
+        draw(self.canvas)
+
+        # Assert
+        self.canvas.draw_image.assert_has_calls([
+            call(nebula_image, [400, 300], [800, 600], [WIDTH / 2, HEIGHT / 2], [WIDTH, HEIGHT]),
+            call(debris_image, [320, 240], [640, 480], (time / 4 % WIDTH - WIDTH / 2, HEIGHT / 2), (WIDTH, HEIGHT)),
+            call(debris_image, [320, 240], [640, 480], (time / 4 % WIDTH + WIDTH / 2, HEIGHT / 2), (WIDTH, HEIGHT))
+        ])
+
+    def test_ui_text_rendering(self):
+        # Arrange
+        global lives, score
+        lives = 3
+        score = 100
+
+        # Act
+        draw(self.canvas)
+
+        # Assert
+        self.canvas.draw_text.assert_has_calls([
+            call("Lives", [50, 50], 22, "White"),
+            call("Score", [680, 50], 22, "White"),
+            call(str(lives), [50, 80], 22, "White"),
+            call(str(score), [680, 80], 22, "White")
+        ])
+
+    def test_ship_and_sprite_drawing(self):
+        # Arrange
+        my_ship.draw = Mock()
+        my_ship.update = Mock()
+        process_sprite_group = Mock()
+
+        # Act
+        draw(self.canvas)
+
+        # Assert
+        my_ship.draw.assert_called_once_with(self.canvas)
+        my_ship.update.assert_called_once()
+        process_sprite_group.assert_any_call(rock_group, self.canvas)
+        process_sprite_group.assert_any_call(missile_group, self.canvas)
+        process_sprite_group.assert_any_call(explosion_group, self.canvas)
+
+    def test_lives_update_on_collision(self):
+        # Arrange
+        global lives
+        lives = 3
+        group_collide = Mock(return_value=True)
+
+        # Act
+        draw(self.canvas)
+
+        # Assert
+        self.assertEqual(lives, 2)
+
+    def test_score_update_on_missile_collision(self):
+        # Arrange
+        global score
+        score = 100
+        group_group_collide = Mock(return_value=5)
+
+        # Act
+        draw(self.canvas)
+
+        # Assert
+        self.assertEqual(score, 105)
+
+    def test_game_reset_on_zero_lives(self):
+        # Arrange
+        global lives, started, rock_group
+        lives = 1
+        started = True
+        rock_group = {Mock()}
+        group_collide = Mock(return_value=True)
+
+        # Act
+        draw(self.canvas)
+
+        # Assert
+        self.assertFalse(started)
+        self.assertEqual(len(rock_group), 0)
+
+    def test_splash_screen_display(self):
+        # Arrange
+        global started
+        started = False
+        splash_info = Mock()
+        splash_info.get_center.return_value = [200, 150]
+        splash_info.get_size.return_value = [400, 300]
+
+        # Act
+        draw(self.canvas)
+
+        # Assert
+        self.canvas.draw_image.assert_called_with(
+            splash_image, [200, 150], [400, 300], [WIDTH / 2, HEIGHT / 2], [400, 300]
+        )
+
+if __name__ == '__main__':
+    unittest.main()

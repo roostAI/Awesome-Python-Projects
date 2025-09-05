@@ -1,0 +1,68 @@
+import unittest
+from Asteroids-RiceRocks import Sprite
+import simplegui
+import math
+import random
+
+class Test_SpriteGetPosition(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_get_position_returns_correct_position(self):
+        # Arrange
+        initial_position = [400, 300]
+        sprite = Sprite(initial_position, [0, 0], 0, None, None)
+        
+        # Act
+        position = sprite.get_position()
+        
+        # Assert
+        self.assertEqual(position, initial_position)
+
+    @unittest.expectedFailure
+    def test_get_position_after_movement(self):
+        # Arrange
+        initial_position = [400, 300]
+        sprite = Sprite(initial_position, [0, 0], 0, None, None)
+        new_position = [450, 350]
+        sprite.pos = new_position  # Simulate movement
+        
+        # Act
+        position = sprite.get_position()
+        
+        # Assert
+        self.assertEqual(position, new_position)
+
+    @unittest.expectedFailure
+    def test_get_position_multiple_objects(self):
+        # Arrange
+        position1 = [100, 100]
+        position2 = [200, 200]
+        sprite1 = Sprite(position1, [0, 0], 0, None, None)
+        sprite2 = Sprite(position2, [0, 0], 0, None, None)
+        
+        # Act
+        position1_result = sprite1.get_position()
+        position2_result = sprite2.get_position()
+        
+        # Assert
+        self.assertEqual(position1_result, position1)
+        self.assertEqual(position2_result, position2)
+
+    @unittest.expectedFailure
+    def test_get_position_edge_cases(self):
+        # Arrange
+        edge_position1 = [0, 0]
+        edge_position2 = [WIDTH, HEIGHT]
+        sprite1 = Sprite(edge_position1, [0, 0], 0, None, None)
+        sprite2 = Sprite(edge_position2, [0, 0], 0, None, None)
+        
+        # Act
+        position1_result = sprite1.get_position()
+        position2_result = sprite2.get_position()
+        
+        # Assert
+        self.assertEqual(position1_result, edge_position1)
+        self.assertEqual(position2_result, edge_position2)
+
+if __name__ == '__main__':
+    unittest.main()

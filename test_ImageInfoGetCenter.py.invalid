@@ -1,0 +1,76 @@
+import unittest
+from Asteroids-RiceRocks import ImageInfo
+import simplegui
+import math
+import random
+
+class Test_ImageInfoGetCenter(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_get_center_ship(self):
+        # Arrange
+        ship_info = ImageInfo([45, 45], [90, 90], 35)
+        
+        # Act
+        center = ship_info.get_center()
+        
+        # Assert
+        self.assertEqual(center, [45, 45], "The center of the ship should be [45, 45]")
+
+    @unittest.expectedFailure
+    def test_get_center_asteroid(self):
+        # Arrange
+        asteroid_info = ImageInfo([45, 45], [90, 90], 40)
+        
+        # Act
+        center = asteroid_info.get_center()
+        
+        # Assert
+        self.assertEqual(center, [45, 45], "The center of the asteroid should be [45, 45]")
+
+    @unittest.expectedFailure
+    def test_get_center_explosion(self):
+        # Arrange
+        explosion_info = ImageInfo([64, 64], [128, 128], 17, 24, True)
+        
+        # Act
+        center = explosion_info.get_center()
+        
+        # Assert
+        self.assertEqual(center, [64, 64], "The center of the explosion should be [64, 64]")
+
+    @unittest.expectedFailure
+    def test_get_center_missile(self):
+        # Arrange
+        missile_info = ImageInfo([5, 5], [10, 10], 3, 50)
+        
+        # Act
+        center = missile_info.get_center()
+        
+        # Assert
+        self.assertEqual(center, [5, 5], "The center of the missile should be [5, 5]")
+
+    @unittest.expectedFailure
+    def test_get_center_debris(self):
+        # Arrange
+        debris_info = ImageInfo([320, 240], [640, 480])
+        
+        # Act
+        center = debris_info.get_center()
+        
+        # Assert
+        self.assertEqual(center, [320, 240], "The center of the debris should be [320, 240]")
+
+    @unittest.expectedFailure
+    def test_get_center_nebula(self):
+        # Arrange
+        nebula_info = ImageInfo([400, 300], [800, 600])
+        
+        # Act
+        center = nebula_info.get_center()
+        
+        # Assert
+        self.assertEqual(center, [400, 300], "The center of the nebula should be [400, 300]")
+
+if __name__ == '__main__':
+    unittest.main()

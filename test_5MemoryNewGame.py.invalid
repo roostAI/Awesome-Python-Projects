@@ -1,0 +1,69 @@
+import unittest
+from 5_Memory import new_game
+import random
+
+class Test_5MemoryNewGame(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_deck_initialization(self):
+        # Arrange
+        new_game()
+        
+        # Act
+        deck = globals()['deck']
+        
+        # Assert
+        self.assertEqual(len(deck), 16, "Deck should contain 16 elements.")
+        self.assertEqual(deck.count(0), 2, "Each number from 0 to 7 should appear twice.")
+        self.assertEqual(deck.count(7), 2, "Each number from 0 to 7 should appear twice.")
+        self.assertNotEqual(deck, list(range(8)) * 2, "Deck should be shuffled.")
+
+    @unittest.expectedFailure
+    def test_exposed_list_initialization(self):
+        # Arrange
+        new_game()
+        
+        # Act
+        exposed = globals()['exposed']
+        
+        # Assert
+        self.assertEqual(len(exposed), 16, "Exposed list should contain 16 elements.")
+        self.assertTrue(all(not x for x in exposed), "All elements in exposed list should be False.")
+
+    @unittest.expectedFailure
+    def test_state_initialization(self):
+        # Arrange
+        new_game()
+        
+        # Act
+        state = globals()['state']
+        
+        # Assert
+        self.assertEqual(state, 0, "State should be initialized to 0.")
+
+    @unittest.expectedFailure
+    def test_turns_initialization(self):
+        # Arrange
+        new_game()
+        
+        # Act
+        turns = globals()['turns']
+        
+        # Assert
+        self.assertEqual(turns, 0, "Turns should be initialized to 0.")
+
+    @unittest.expectedFailure
+    def test_card1_card2_initialization(self):
+        # Arrange
+        new_game()
+        
+        # Act
+        card1 = globals()['card1']
+        card2 = globals()['card2']
+        
+        # Assert
+        self.assertEqual(card1, 0, "Card1 should be initialized to 0.")
+        self.assertEqual(card2, 0, "Card2 should be initialized to 0.")
+
+if __name__ == '__main__':
+    unittest.main()

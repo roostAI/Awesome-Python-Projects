@@ -1,0 +1,72 @@
+import unittest
+from unittest.mock import Mock
+from Asteroids-RiceRocks import Ship
+import simplegui
+
+class Test_ShipDraw(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_draw_with_thrust(self):
+        # Arrange
+        ship = Ship([400, 300], [0, 0], 0, ship_image, ship_info)
+        ship.thrust = True
+        mock_canvas = Mock()
+
+        # Act
+        ship.draw(mock_canvas)
+
+        # Assert
+        expected_center = [ship_info.get_center()[0] + ship_info.get_size()[0], ship_info.get_center()[1]]
+        mock_canvas.draw_image.assert_called_with(ship_image, expected_center, ship_info.get_size(), ship.pos, ship_info.get_size(), ship.angle)
+
+    @unittest.expectedFailure
+    def test_draw_without_thrust(self):
+        # Arrange
+        ship = Ship([400, 300], [0, 0], 0, ship_image, ship_info)
+        ship.thrust = False
+        mock_canvas = Mock()
+
+        # Act
+        ship.draw(mock_canvas)
+
+        # Assert
+        mock_canvas.draw_image.assert_called_with(ship_image, ship_info.get_center(), ship_info.get_size(), ship.pos, ship_info.get_size(), ship.angle)
+
+    @unittest.expectedFailure
+    def test_image_positioning(self):
+        # Arrange
+        ship = Ship([400, 300], [0, 0], 0, ship_image, ship_info)
+        mock_canvas = Mock()
+
+        # Act
+        ship.draw(mock_canvas)
+
+        # Assert
+        mock_canvas.draw_image.assert_called_with(ship_image, ship_info.get_center(), ship_info.get_size(), ship.pos, ship_info.get_size(), ship.angle)
+
+    @unittest.expectedFailure
+    def test_image_rotation(self):
+        # Arrange
+        ship = Ship([400, 300], [0, 0], math.pi / 4, ship_image, ship_info)  # 45 degrees
+        mock_canvas = Mock()
+
+        # Act
+        ship.draw(mock_canvas)
+
+        # Assert
+        mock_canvas.draw_image.assert_called_with(ship_image, ship_info.get_center(), ship_info.get_size(), ship.pos, ship_info.get_size(), ship.angle)
+
+    @unittest.expectedFailure
+    def test_image_size_consistency(self):
+        # Arrange
+        ship = Ship([400, 300], [0, 0], 0, ship_image, ship_info)
+        mock_canvas = Mock()
+
+        # Act
+        ship.draw(mock_canvas)
+
+        # Assert
+        mock_canvas.draw_image.assert_called_with(ship_image, ship_info.get_center(), ship_info.get_size(), ship.pos, ship_info.get_size(), ship.angle)
+
+if __name__ == '__main__':
+    unittest.main()

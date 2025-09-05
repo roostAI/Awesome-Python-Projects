@@ -1,0 +1,106 @@
+import unittest
+from Asteroids-RiceRocks import group_collide
+from Asteroids-RiceRocks import Sprite, explosion_group, explosion_image, explosion_info, explosion_sound
+import simplegui
+import math
+import random
+
+class Test_AsteroidsRiceRocksGroupCollide(unittest.TestCase):
+
+    def setUp(self):
+        # Reset the explosion group before each test
+        explosion_group.clear()
+
+    def test_single_sprite_collision(self):
+        # Arrange
+        sprite = Sprite([100, 100], [0, 0], 0, 0, None, None)
+        other_object = Sprite([100, 100], [0, 0], 0, 0, None, None)
+        s_group = {sprite}
+
+        # Act
+        result = group_collide(s_group, other_object)
+
+        # Assert
+        self.assertTrue(result)
+        self.assertNotIn(sprite, s_group)
+        self.assertEqual(len(explosion_group), 1)
+
+    def test_single_sprite_no_collision(self):
+        # Arrange
+        sprite = Sprite([100, 100], [0, 0], 0, 0, None, None)
+        other_object = Sprite([300, 300], [0, 0], 0, 0, None, None)
+        s_group = {sprite}
+
+        # Act
+        result = group_collide(s_group, other_object)
+
+        # Assert
+        self.assertFalse(result)
+        self.assertIn(sprite, s_group)
+        self.assertEqual(len(explosion_group), 0)
+
+    def test_multiple_sprites_collision(self):
+        # Arrange
+        sprite1 = Sprite([100, 100], [0, 0], 0, 0, None, None)
+        sprite2 = Sprite([300, 300], [0, 0], 0, 0, None, None)
+        other_object = Sprite([100, 100], [0, 0], 0, 0, None, None)
+        s_group = {sprite1, sprite2}
+
+        # Act
+        result = group_collide(s_group, other_object)
+
+        # Assert
+        self.assertTrue(result)
+        self.assertNotIn(sprite1, s_group)
+        self.assertIn(sprite2, s_group)
+        self.assertEqual(len(explosion_group), 1)
+
+    def test_multiple_sprites_no_collision(self):
+        # Arrange
+        sprite1 = Sprite([100, 100], [0, 0], 0, 0, None, None)
+        sprite2 = Sprite([200, 200], [0, 0], 0, 0, None, None)
+        other_object = Sprite([300, 300], [0, 0], 0, 0, None, None)
+        s_group = {sprite1, sprite2}
+
+        # Act
+        result = group_collide(s_group, other_object)
+
+        # Assert
+        self.assertFalse(result)
+        self.assertIn(sprite1, s_group)
+        self.assertIn(sprite2, s_group)
+        self.assertEqual(len(explosion_group), 0)
+
+    def test_all_sprites_collision(self):
+        # Arrange
+        sprite1 = Sprite([100, 100], [0, 0], 0, 0, None, None)
+        sprite2 = Sprite([100, 100], [0, 0], 0, 0, None, None)
+        other_object = Sprite([100, 100], [0, 0], 0, 0, None, None)
+        s_group = {sprite1, sprite2}
+
+        # Act
+        result = group_collide(s_group, other_object)
+
+        # Assert
+        self.assertTrue(result)
+        self.assertNotIn(sprite1, s_group)
+        self.assertNotIn(sprite2, s_group)
+        self.assertEqual(len(explosion_group), 2)
+
+    def test_explosion_creation_on_collision(self):
+        # Arrange
+        sprite = Sprite([100, 100], [0, 0], 0, 0, None, None)
+        other_object = Sprite([100, 100], [0, 0], 0, 0, None, None)
+        s_group = {sprite}
+
+        # Act
+        result = group_collide(s_group, other_object)
+
+        # Assert
+        self.assertTrue(result)
+        self.assertEqual(len(explosion_group), 1)
+        explosion = next(iter(explosion_group))
+        self.assertEqual(explosion.get_position(), [100, 100])
+
+if __name__ == '__main__':
+    unittest.main()

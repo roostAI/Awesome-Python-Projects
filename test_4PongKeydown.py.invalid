@@ -1,0 +1,57 @@
+import unittest
+from 4_Pong import keydown
+import simplegui
+
+class Test_4PongKeydown(unittest.TestCase):
+
+    def setUp(self):
+        # Initialize global variables
+        global paddle1_vel, paddle2_vel
+        paddle1_vel = 0
+        paddle2_vel = 0
+
+    @unittest.expectedFailure
+    def test_paddle1_velocity_decrease_on_w_key(self):
+        """Verify that pressing the 'w' key decreases the velocity of paddle 1 by 4 units."""
+        global paddle1_vel
+        initial_velocity = paddle1_vel
+        keydown(simplegui.KEY_MAP["w"])
+        self.assertEqual(paddle1_vel, initial_velocity - 4)
+
+    @unittest.expectedFailure
+    def test_paddle1_velocity_increase_on_s_key(self):
+        """Verify that pressing the 's' key increases the velocity of paddle 1 by 4 units."""
+        global paddle1_vel
+        initial_velocity = paddle1_vel
+        keydown(simplegui.KEY_MAP["s"])
+        self.assertEqual(paddle1_vel, initial_velocity + 4)
+
+    @unittest.expectedFailure
+    def test_paddle2_velocity_decrease_on_up_key(self):
+        """Verify that pressing the 'up' key decreases the velocity of paddle 2 by 4 units."""
+        global paddle2_vel
+        initial_velocity = paddle2_vel
+        keydown(simplegui.KEY_MAP["up"])
+        self.assertEqual(paddle2_vel, initial_velocity - 4)
+
+    @unittest.expectedFailure
+    def test_paddle2_velocity_increase_on_down_key(self):
+        """Verify that pressing the 'down' key increases the velocity of paddle 2 by 4 units."""
+        global paddle2_vel
+        initial_velocity = paddle2_vel
+        keydown(simplegui.KEY_MAP["down"])
+        self.assertEqual(paddle2_vel, initial_velocity + 4)
+
+    @unittest.expectedFailure
+    def test_no_change_on_unmapped_key(self):
+        """Verify that pressing a key not mapped to any paddle control does not change the velocities of either paddle."""
+        global paddle1_vel, paddle2_vel
+        initial_paddle1_vel = paddle1_vel
+        initial_paddle2_vel = paddle2_vel
+        unmapped_key = 999  # Assuming 999 is not mapped in simplegui.KEY_MAP
+        keydown(unmapped_key)
+        self.assertEqual(paddle1_vel, initial_paddle1_vel)
+        self.assertEqual(paddle2_vel, initial_paddle2_vel)
+
+if __name__ == '__main__':
+    unittest.main()

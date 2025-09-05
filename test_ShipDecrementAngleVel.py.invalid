@@ -1,0 +1,75 @@
+import unittest
+from Asteroids-RiceRocks import Ship
+
+class Test_ShipDecrementAngleVel(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_decrement_angle_vel_decreases_by_fixed_amount(self):
+        # Arrange
+        initial_angle_vel = 0.1
+        ship = Ship([400, 300], [0, 0], initial_angle_vel, None, None)  # TODO: Replace None with actual image and info
+
+        # Act
+        ship.decrement_angle_vel()
+
+        # Assert
+        self.assertEqual(ship.angle_vel, 0.05)
+
+    @unittest.expectedFailure
+    def test_decrement_angle_vel_from_zero(self):
+        # Arrange
+        initial_angle_vel = 0.0
+        ship = Ship([400, 300], [0, 0], initial_angle_vel, None, None)  # TODO: Replace None with actual image and info
+
+        # Act
+        ship.decrement_angle_vel()
+
+        # Assert
+        self.assertEqual(ship.angle_vel, -0.05)
+
+    @unittest.expectedFailure
+    def test_decrement_angle_vel_with_negative_initial_value(self):
+        # Arrange
+        initial_angle_vel = -0.1
+        ship = Ship([400, 300], [0, 0], initial_angle_vel, None, None)  # TODO: Replace None with actual image and info
+
+        # Act
+        ship.decrement_angle_vel()
+
+        # Assert
+        self.assertEqual(ship.angle_vel, -0.15)
+
+    @unittest.expectedFailure
+    def test_multiple_decrement_angle_vel_calls(self):
+        # Arrange
+        initial_angle_vel = 0.2
+        ship = Ship([400, 300], [0, 0], initial_angle_vel, None, None)  # TODO: Replace None with actual image and info
+
+        # Act
+        ship.decrement_angle_vel()
+        ship.decrement_angle_vel()
+        ship.decrement_angle_vel()
+
+        # Assert
+        self.assertEqual(ship.angle_vel, 0.05)
+
+    @unittest.expectedFailure
+    def test_decrement_angle_vel_no_side_effects(self):
+        # Arrange
+        initial_position = [400, 300]
+        initial_velocity = [1, 1]
+        initial_angle = 0.5
+        initial_angle_vel = 0.1
+        ship = Ship(initial_position, initial_velocity, initial_angle_vel, None, None)  # TODO: Replace None with actual image and info
+
+        # Act
+        ship.decrement_angle_vel()
+
+        # Assert
+        self.assertEqual(ship.angle_vel, 0.05)
+        self.assertEqual(ship.pos, initial_position)
+        self.assertEqual(ship.vel, initial_velocity)
+        self.assertEqual(ship.angle, initial_angle)
+
+if __name__ == '__main__':
+    unittest.main()

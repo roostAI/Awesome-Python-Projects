@@ -1,0 +1,82 @@
+import unittest
+from unittest.mock import MagicMock
+from Asteroids-RiceRocks import Ship
+import simplegui
+
+class Test_ShipSetThrust(unittest.TestCase):
+
+    def setUp(self):
+        # Mock the ship_thrust_sound to avoid actual sound playing during tests
+        self.mock_ship_thrust_sound = MagicMock()
+        global ship_thrust_sound
+        ship_thrust_sound = self.mock_ship_thrust_sound
+
+    @unittest.expectedFailure
+    def test_thrust_activation(self):
+        # Arrange
+        ship = Ship([400, 300], [0, 0], 0, ship_image, ship_info)
+        
+        # Act
+        ship.set_thrust(True)
+        
+        # Assert
+        self.assertTrue(ship.thrust, "Thrust should be activated.")
+        self.mock_ship_thrust_sound.rewind.assert_called_once()
+        self.mock_ship_thrust_sound.play.assert_called_once()
+
+    @unittest.expectedFailure
+    def test_thrust_deactivation(self):
+        # Arrange
+        ship = Ship([400, 300], [0, 0], 0, ship_image, ship_info)
+        ship.set_thrust(True)  # Initially activate thrust
+        
+        # Act
+        ship.set_thrust(False)
+        
+        # Assert
+        self.assertFalse(ship.thrust, "Thrust should be deactivated.")
+        self.mock_ship_thrust_sound.pause.assert_called_once()
+
+    @unittest.expectedFailure
+    def test_sound_rewind_on_thrust_activation(self):
+        # Arrange
+        ship = Ship([400, 300], [0, 0], 0, ship_image, ship_info)
+        
+        # Act
+        ship.set_thrust(True)
+        
+        # Assert
+        self.mock_ship_thrust_sound.rewind.assert_called_once()
+        self.mock_ship_thrust_sound.play.assert_called_once()
+
+    @unittest.expectedFailure
+    def test_sound_pause_on_thrust_deactivation(self):
+        # Arrange
+        ship = Ship([400, 300], [0, 0], 0, ship_image, ship_info)
+        ship.set_thrust(True)  # Initially activate thrust
+        
+        # Act
+        ship.set_thrust(False)
+        
+        # Assert
+        self.mock_ship_thrust_sound.pause.assert_called_once()
+
+    @unittest.expectedFailure
+    def test_no_sound_play_on_repeated_thrust_activation(self):
+        # Arrange
+        ship = Ship([400, 300], [0, 0], 0, ship_image, ship_info)
+        ship.set_thrust(True)  # Initially activate thrust
+        
+        # Reset mock to clear previous calls
+        self.mock_ship_thrust_sound.reset_mock()
+        
+        # Act
+        ship.set_thrust(True)  # Activate thrust again
+        
+        # Assert
+        self.mock_ship_thrust_sound.rewind.assert_not_called()
+        self.mock_ship_thrust_sound.play.assert_not_called()
+
+# Run the tests
+if __name__ == '__main__':
+    unittest.main()
