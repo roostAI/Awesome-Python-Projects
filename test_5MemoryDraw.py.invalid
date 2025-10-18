@@ -1,0 +1,381 @@
+import sys
+import types
+import unittest
+import random  # required import as per instructions
+
+# Provide a minimal simplegui stub to avoid import errors and side effects during module import.
+if 'simplegui' not in sys.modules:
+    simplegui = types.ModuleType('simplegui')
+
+    class _DummyLabel:
+        def __init__(self, text=''):
+            self._text = text
+
+        def set_text(self, text):
+            self._text = text
+
+    class _DummyFrame:
+        def add_button(self, *args, **kwargs):
+            return None
+
+        def add_label(self, text):
+            return _DummyLabel(text)
+
+        def set_mouseclick_handler(self, *args, **kwargs):
+            pass
+
+        def set_draw_handler(self, *args, **kwargs):
+            pass
+
+        def start(self):
+            pass
+
+    def create_frame(title, width, height):
+        return _DummyFrame()
+
+    simplegui.create_frame = create_frame
+    sys.modules['simplegui'] = simplegui
+
+import simplegui  # required import as per instructions
+
+# Import the function under test.
+# NOTE: The environment is expected to support this import path.
+from 5- Memory import draw  # noqa: E999
+
+
+def tag(*tags):
+    """Simple tagging decorator to annotate tests with categories."""
+    def _decorator(func):
+        setattr(func, "tags", set(tags))
+        return func
+    return _decorator
+
+
+class FakeCanvas:
+    """Mock canvas that records draw_line and draw_text calls with order."""
+    def __init__(self):
+        self.lines = []
+        self.texts = []
+        self.events = []
+
+    def draw_line(self, p1, p2, width, color):
+        call = ("line", (p1, p2, width, color))
+        self.lines.append(call)
+        self.events.append(call)
+
+    def draw_text(self, text, pos, size, color):
+        call = ("text", (str(text), pos, size, color))
+        self.texts.append(call)
+        self.events.append(call)
+
+
+class FakeLabel:
+    """Mock label that records set_text calls."""
+    def __init__(self):
+        self.calls = 0
+        self.last_value = None
+
+    def set_text(self, value):
+        self.calls += 1
+        self.last_value = value
+
+
+class Test_5MemoryDraw(unittest.TestCase):
+
+    def _set_globals(self, deck, exposed, turns, label):
+        """Helper to inject globals into the draw function module scope."""
+        g = draw.__globals__
+        g['deck'] = deck
+        g['exposed'] = exposed
+        g['turns'] = turns
+        g['label'] = label
+
+    @tag('smoke', 'positive', 'valid')
+    def test_draw_all_hidden_renders_only_card_backs(self):
+        # Arrange
+        deck = [1, 2, 3, 4]
+        exposed = [False, False, False, False]
+        turns = 0
+        canvas = FakeCanvas()
+        label = FakeLabel()
+        self._set_globals(deck, exposed, turns, label)
+
+        # Act
+        draw(canvas)
+
+        # Assert
+        self.assertEqual(len(canvas.texts), 0, "Expected no draw_text calls when all cards are hidden.")
+        self.assertEqual(len(canvas.lines), 8, "Expected 8 draw_line calls (2 per card for 4 cards).")
+
+        # Validate geometry and order per card
+        for i in range(len(deck)):
+            x = i * 50
+            idx = i * 2
+            self.assertEqual(canvas.events[idx][0], 'line')
+            self.assertEqual(canvas.events[idx][1], ((x, 0), (x, 100), 2, 'yellow'))
+            self.assertEqual(canvas.events[idx + 1][0], 'line')
+            self.assertEqual(canvas.events[idx + 1][1], ((x, 0), (x + 50, 0), 200, 'green'))
+
+        self.assertEqual(label.calls, 1, "Label should be updated exactly once.")
+        self.assertEqual(label.last_value, "Turns = 0")
+
+    @tag('regression', 'positive', 'valid')
+    def test_draw_all_exposed_renders_only_text_faces(self):
+        # Arrange
+        deck = [10, 2, 13]
+        exposed = [True, True, True]
+        turns = 5
+        canvas = FakeCanvas()
+        label = FakeLabel()
+        self._set_globals(deck, exposed, turns, label)
+
+        # Act
+        draw(canvas)
+
+        # Assert
+        self.assertEqual(len(canvas.lines), 0, "No lines should be drawn when all cards are exposed.")
+        self.assertEqual(len(canvas.texts), 3, "Each exposed card should produce one draw_text call.")
+
+        expected_texts = [
+            ('text', (str(10), [0, 90], 115, 'red')),
+            ('text', (str(2), [50, 90], 115, 'red')),
+            ('text', (str(13), [100, 90], 115, 'red')),
+        ]
+        self.assertEqual(canvas.events, expected_texts, "Text events should match expected order and geometry.")
+
+        self.assertEqual(label.calls, 1)
+        self.assertEqual(label.last_value, "Turns = 5")
+
+    @tag('regression', 'positive', 'valid')
+    def test_draw_mixed_exposure_renders_backs_and_faces_in_order(self):
+        # Arrange
+        deck = [1, 2, 3, 4]
+        exposed = [True, False, True, False]
+        turns = 3
+        canvas = FakeCanvas()
+        label = FakeLabel()
+        self._set_globals(deck, exposed, turns, label)
+
+        # Act
+        draw(canvas)
+
+        # Assert
+        expected_events = []
+        for i, num in enumerate(deck):
+            x = i * 50
+            if exposed[i] == False:
+                expected_events.append(('line', ((x, 0), (x, 100), 2, 'yellow')))
+                expected_events.append(('line', ((x, 0), (x + 50, 0), 200, 'green')))
+            else:
+                expected_events.append(('text', (str(num), [x, 90], 115, 'red')))
+
+        self.assertEqual(canvas.events, expected_events, "Mixed exposure should produce correctly ordered drawing calls.")
+        self.assertEqual(len(canvas.texts), 2)
+        self.assertEqual(len(canvas.lines), 4)
+        self.assertEqual(label.calls, 1)
+        self.assertEqual(label.last_value, "Turns = 3")
+
+    @tag('smoke', 'positive', 'valid')
+    def test_draw_empty_deck_no_canvas_calls_label_updated(self):
+        # Arrange
+        deck = []
+        exposed = []
+        turns = 7
+        canvas = FakeCanvas()
+        label = FakeLabel()
+        self._set_globals(deck, exposed, turns, label)
+
+        # Act
+        draw(canvas)
+
+        # Assert
+        self.assertEqual(len(canvas.events), 0, "No canvas calls expected for empty deck.")
+        self.assertEqual(label.calls, 1)
+        self.assertEqual(label.last_value, "Turns = 7")
+
+    @tag('negative', 'invalid', 'error-handling')
+    def test_draw_mismatched_deck_and_exposed_raises_index_error(self):
+        # Arrange
+        deck = [1, 2, 3]
+        exposed = [False, True]  # shorter than deck
+        turns = 0
+        canvas = FakeCanvas()
+        label = FakeLabel()
+        self._set_globals(deck, exposed, turns, label)
+
+        # Act / Assert
+        with self.assertRaises(IndexError):
+            draw(canvas)
+
+        self.assertEqual(label.calls, 0, "Label should not be updated when an IndexError interrupts drawing.")
+
+    @tag('regression', 'positive', 'edge')
+    def test_draw_non_boolean_exposure_equality_behavior(self):
+        # Arrange
+        deck = [11, 22, 33, 44, 55, 66]
+        exposed = [0, None, 1, "yes", False, True]
+        # Hidden expected at idx 0 (0 == False) and 4 (False == False)
+        turns = 2
+        canvas = FakeCanvas()
+        label = FakeLabel()
+        self._set_globals(deck, exposed, turns, label)
+
+        # Act
+        draw(canvas)
+
+        # Assert
+        expected_events = []
+        for i, num in enumerate(deck):
+            x = i * 50
+            if exposed[i] == False:
+                expected_events.append(('line', ((x, 0), (x, 100), 2, 'yellow')))
+                expected_events.append(('line', ((x, 0), (x + 50, 0), 200, 'green')))
+            else:
+                expected_events.append(('text', (str(num), [x, 90], 115, 'red')))
+        self.assertEqual(canvas.events, expected_events)
+
+        # Check counts for hidden indices 0 and 4
+        self.assertEqual(len(canvas.lines), 4, "Two hidden cards should produce 4 line calls total.")
+        self.assertEqual(len(canvas.texts), 4, "Four exposed cards should produce 4 text calls total.")
+        self.assertEqual(label.calls, 1)
+        self.assertEqual(label.last_value, "Turns = 2")
+
+    @tag('regression', 'layout', 'valid')
+    def test_draw_horizontal_spacing_and_x_progression(self):
+        # Arrange
+        deck = [5, 6, 7, 8, 9]
+        exposed = [True, False, True, False, True]
+        turns = 1
+        canvas = FakeCanvas()
+        label = FakeLabel()
+        self._set_globals(deck, exposed, turns, label)
+
+        # Act
+        draw(canvas)
+
+        # Assert
+        # Determine first event for each card and group sizes per card
+        expected_x_positions = {0, 50, 100, 150, 200}
+        x_positions = []
+        idx = 0
+        for i in range(len(deck)):
+            x = i * 50
+            if exposed[i] == False:
+                # Two events for hidden
+                self.assertEqual(canvas.events[idx][0], 'line')
+                self.assertEqual(canvas.events[idx][1][0][0], x)  # p1.x
+                self.assertEqual(canvas.events[idx + 1][0], 'line')
+                self.assertEqual(canvas.events[idx + 1][1][0][0], x)  # p1.x
+                idx += 2
+            else:
+                # One event for exposed
+                self.assertEqual(canvas.events[idx][0], 'text')
+                self.assertEqual(canvas.events[idx][1][1][0], x)  # pos.x
+                idx += 1
+            x_positions.append(x)
+
+        # Validate the set of x positions and order
+        self.assertEqual(set(x_positions), expected_x_positions)
+        self.assertEqual(x_positions, [0, 50, 100, 150, 200], "Cards should be processed in left-to-right order.")
+        self.assertEqual(label.calls, 1)
+        self.assertEqual(label.last_value, "Turns = 1")
+
+    @tag('smoke', 'valid')
+    def test_draw_label_updated_once_with_exact_format(self):
+        # Arrange
+        deck = [1, 2, 3, 4, 5, 6]
+        exposed = [False, True, False, True, False, True]
+        turns = 12
+        canvas = FakeCanvas()
+        label = FakeLabel()
+        self._set_globals(deck, exposed, turns, label)
+
+        # Act
+        draw(canvas)
+
+        # Assert
+        self.assertEqual(label.calls, 1)
+        self.assertEqual(label.last_value, "Turns = 12")
+
+    @tag('performance', 'valid')
+    def test_draw_large_deck_call_counts_and_final_position(self):
+        # Arrange
+        deck = list(range(1, 17))  # 16 cards
+        exposed = [False] * 8 + [True] * 8
+        turns = 23
+        canvas = FakeCanvas()
+        label = FakeLabel()
+        self._set_globals(deck, exposed, turns, label)
+
+        # Act
+        draw(canvas)
+
+        # Assert
+        # First 8 hidden: 16 line calls total; last 8 exposed: 8 text calls total.
+        self.assertEqual(len(canvas.lines), 16)
+        self.assertEqual(len(canvas.texts), 8)
+
+        # Validate x positions for first and last card
+        # Last card index = 15 -> x=750
+        # Ensure last event includes x=750
+        last_event = canvas.events[-1]
+        if last_event[0] == 'text':
+            self.assertEqual(last_event[1][1][0], 750)
+        elif last_event[0] == 'line':
+            self.assertEqual(last_event[1][0][0], 750)  # p1.x
+        else:
+            self.fail("Unexpected last event type.")
+
+        self.assertEqual(label.calls, 1)
+        self.assertEqual(label.last_value, "Turns = 23")
+
+    @tag('regression', 'styling', 'valid')
+    def test_draw_hidden_card_line_styles_and_call_order(self):
+        # Arrange
+        deck = [9]
+        exposed = [False]
+        turns = 0
+        canvas = FakeCanvas()
+        label = FakeLabel()
+        self._set_globals(deck, exposed, turns, label)
+
+        # Act
+        draw(canvas)
+
+        # Assert
+        self.assertEqual(len(canvas.texts), 0, "Hidden card must not draw text.")
+        self.assertEqual(len(canvas.lines), 2, "Hidden card must draw two lines.")
+        self.assertEqual(canvas.events[0], ('line', ((0, 0), (0, 100), 2, 'yellow')))
+        self.assertEqual(canvas.events[1], ('line', ((0, 0), (50, 0), 200, 'green')))
+        self.assertEqual(label.calls, 1)
+        self.assertEqual(label.last_value, "Turns = 0")
+
+    @tag('regression', 'styling', 'valid')
+    def test_draw_exposed_card_text_style_and_position(self):
+        # Arrange
+        deck = ['A', 'B', '-']
+        exposed = [True, True, True]
+        turns = 9
+        canvas = FakeCanvas()
+        label = FakeLabel()
+        self._set_globals(deck, exposed, turns, label)
+
+        # Act
+        draw(canvas)
+
+        # Assert
+        self.assertEqual(len(canvas.lines), 0, "No lines should be drawn for exposed cards.")
+        self.assertEqual(len(canvas.texts), 3, "Each exposed card should produce one text call.")
+        expected_texts = [
+            ('text', ('A', [0, 90], 115, 'red')),
+            ('text', ('B', [50, 90], 115, 'red')),
+            ('text', ('-', [100, 90], 115, 'red')),
+        ]
+        self.assertEqual(canvas.events, expected_texts)
+        self.assertEqual(label.calls, 1)
+        self.assertEqual(label.last_value, "Turns = 9")
+
+
+if __name__ == '__main__':
+    # TODO: Adjust verbosity or test filtering as needed.
+    unittest.main(verbosity=2)

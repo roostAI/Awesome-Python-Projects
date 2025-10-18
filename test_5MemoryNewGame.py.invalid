@@ -1,0 +1,289 @@
+import unittest
+import sys
+import types
+import builtins
+from contextlib import contextmanager
+
+# Required imports per instructions
+import simplegui  # noqa: F401
+import random  # noqa: F401
+
+# Import the function under test as specified
+from 5- Memory import new_game  # noqa: E999
+
+
+def tag(*tags):
+    def decorator(func):
+        setattr(func, "tags", set(tags))
+        return func
+    return decorator
+
+
+@contextmanager
+def patch_module_attr(module, name, value):
+    """Temporarily patch an attribute on a module."""
+    had_attr = hasattr(module, name)
+    old_value = getattr(module, name, None)
+    setattr(module, name, value)
+    try:
+        yield
+    finally:
+        if had_attr:
+            setattr(module, name, old_value)
+        else:
+            delattr(module, name)
+
+
+def get_game_module():
+    """Return the module object that defines new_game."""
+    return sys.modules[new_game.__module__]
+
+
+@contextmanager
+def patch_range_to_list(module):
+    """Patch the module's range to return a list for Python 3 compatibility."""
+    def range_list(n):
+        return list(builtins.range(n))
+    with patch_module_attr(module, "range", range_list):
+        yield
+
+
+class Test_5MemoryNewGame(unittest.TestCase):
+    def setUp(self):
+        # Ensure we can access the module that defines new_game and it has 'random'
+        self.mod = get_game_module()
+        if not hasattr(self.mod, "random"):
+            setattr(self.mod, "random", random)
+
+    @tag('smoke', 'regression', 'positive', 'valid')
+    def test_new_game_initializes_defaults(self):
+        # Arrange
+        mod = self.mod
+        setattr(mod, "deck", ["non", "default"])
+        setattr(mod, "exposed", ["fake"])
+        setattr(mod, "state", 99)
+        setattr(mod, "card1", 2)
+        setattr(mod, "card2", 3)
+        setattr(mod, "turns", 4)
+
+        # Act
+        with patch_range_to_list(mod):
+            new_game()
+
+        # Assert
+        self.assertTrue(hasattr(mod, "deck"))
+        self.assertTrue(hasattr(mod, "exposed"))
+        self.assertTrue(hasattr(mod, "state"))
+        self.assertTrue(hasattr(mod, "card1"))
+        self.assertTrue(hasattr(mod, "card2"))
+        self.assertTrue(hasattr(mod, "turns"))
+
+        self.assertEqual(mod.state, 0)
+        self.assertEqual(mod.card1, 0)
+        self.assertEqual(mod.card2, 0)
+        self.assertEqual(mod.turns, 0)
+
+    @tag('regression', 'positive', 'valid')
+    def test_deck_composition_two_of_each_value(self):
+        mod = self.mod
+        with patch_range_to_list(mod):
+            new_game()
+        deck = getattr(mod, "deck")
+        self.assertEqual(len(deck), 16)
+        for v in range(8):
+            self.assertEqual(deck.count(v), 2, f"Value {v} should appear exactly twice")
+
+    @tag('regression', 'positive', 'valid')
+    def test_exposed_alignment_and_all_false(self):
+        mod = self.mod
+        with patch_range_to_list(mod):
+            new_game()
+        deck = getattr(mod, "deck")
+        exposed = getattr(mod, "exposed")
+        self.assertEqual(len(deck), 16)
+        self.assertEqual(len(exposed), len(deck))
+        self.assertTrue(all(val is False for val in exposed))
+
+    @tag('regression', 'negative', 'valid')
+    def test_reinitialization_resets_modified_state(self):
+        mod = self.mod
+        with patch_range_to_list(mod):
+            new_game()
+
+            # Mutate globals to simulate a partially played game
+            mod.exposed[0] = True
+            mod.state = 2
+            mod.turns = 5
+            mod.card1 = 3
+            mod.card2 = 7
+            mod.deck = [42] * 5  # corrupt deck
+
+            # Act: reinitialize
+            new_game()
+
+        # Assert core counters reset
+        self.assertEqual(mod.state, 0)
+        self.assertEqual(mod.card1, 0)
+        self.assertEqual(mod.card2, 0)
+        self.assertEqual(mod.turns, 0)
+
+        # Assert deck composition
+        deck = mod.deck
+        self.assertEqual(len(deck), 16)
+        for v in range(8):
+            self.assertEqual(deck.count(v), 2)
+
+        # Assert exposed reset
+        exposed = mod.exposed
+        self.assertEqual(len(exposed), 16)
+        self.assertTrue(all(val is False for val in exposed))
+
+    @tag('regression', 'positive', 'valid')
+    def test_shuffle_invoked_once_on_deck(self):
+        mod = self.mod
+        # Prepare a spy for random.shuffle that reverses the list
+        class ShuffleSpy:
+            def __init__(self):
+                self.calls = 0
+                self.last_arg = None
+                self.pre_lists = []
+
+            def __call__(self, lst):
+                self.calls += 1
+                self.last_arg = lst
+                self.pre_lists.append(list(lst))
+                lst.reverse()
+
+        spy = ShuffleSpy()
+        base_deck = list(range(8)) + list(range(8))
+        # Patch both range and random.shuffle used in the target module
+        with patch_range_to_list(mod):
+            with patch_module_attr(mod.random, 'shuffle', spy):
+                new_game()
+
+        self.assertEqual(spy.calls, 1, "random.shuffle should be called exactly once")
+        self.assertIs(spy.last_arg, mod.deck, "Shuffle should be applied to the deck by reference")
+        # Verify pre-shuffle content and post-shuffle deterministic transformation
+        self.assertEqual(spy.pre_lists[0], base_deck, "Deck should be base deck before shuffle")
+        self.assertEqual(mod.deck, list(reversed(base_deck)), "Deck should equal reversed base deck after spy shuffle")
+
+    @tag('regression', 'positive', 'valid')
+    def test_base_deck_before_shuffle(self):
+        mod = self.mod
+
+        def noop_shuffle(lst):
+            # No-op shuffle leaves list as-is
+            return None
+
+        base_deck = list(range(8)) + list(range(8))
+        with patch_range_to_list(mod):
+            with patch_module_attr(mod.random, 'shuffle', noop_shuffle):
+                new_game()
+
+        self.assertEqual(mod.deck, base_deck)
+        self.assertEqual(len(mod.exposed), 16)
+        self.assertTrue(all(val is False for val in mod.exposed))
+
+    @tag('regression', 'positive', 'valid')
+    def test_fresh_objects_each_call(self):
+        mod = self.mod
+        with patch_range_to_list(mod):
+            new_game()
+            first_deck_id = id(mod.deck)
+            first_exposed_id = id(mod.exposed)
+            new_game()
+            second_deck_id = id(mod.deck)
+            second_exposed_id = id(mod.exposed)
+
+        self.assertNotEqual(first_deck_id, second_deck_id, "Deck should be freshly allocated each call")
+        self.assertNotEqual(first_exposed_id, second_exposed_id, "Exposed should be freshly allocated each call")
+        self.assertEqual(len(mod.deck), 16)
+        self.assertEqual(len(mod.exposed), 16)
+        self.assertTrue(all(val is False for val in mod.exposed))
+
+    @tag('regression', 'positive', 'valid')
+    def test_globals_defined_after_call(self):
+        mod = self.mod
+        # Ensure deletion of globals if present
+        for name in ('deck', 'exposed', 'state', 'card1', 'card2', 'turns'):
+            if hasattr(mod, name):
+                delattr(mod, name)
+
+        with patch_range_to_list(mod):
+            new_game()
+
+        for name in ('deck', 'exposed', 'state', 'card1', 'card2', 'turns'):
+            self.assertTrue(hasattr(mod, name), f"Global {name} should be defined by new_game")
+
+    @tag('regression', 'positive', 'valid')
+    def test_deck_exposed_consistency_across_runs(self):
+        mod = self.mod
+        with patch_range_to_list(mod):
+            new_game()
+            # Corrupt state
+            mod.exposed[1] = True
+            mod.deck.pop()
+            mod.deck.append(99)
+
+            # Reinitialize
+            new_game()
+
+        self.assertEqual(len(mod.deck), 16)
+        self.assertEqual(len(mod.exposed), 16)
+        for v in range(8):
+            self.assertEqual(mod.deck.count(v), 2)
+        self.assertTrue(all(val is False for val in mod.exposed))
+
+    @tag('smoke', 'positive', 'valid')
+    def test_counters_initialized_to_zero_int(self):
+        mod = self.mod
+        with patch_range_to_list(mod):
+            new_game()
+        self.assertIsInstance(mod.state, int)
+        self.assertIsInstance(mod.turns, int)
+        self.assertIsInstance(mod.card1, int)
+        self.assertIsInstance(mod.card2, int)
+        self.assertEqual(mod.state, 0)
+        self.assertEqual(mod.turns, 0)
+        self.assertEqual(mod.card1, 0)
+        self.assertEqual(mod.card2, 0)
+
+    @tag('documentation', 'negative', 'python3-compatibility')
+    def test_python3_range_concatenation_error(self):
+        if sys.version_info[0] < 3:
+            self.skipTest("This behavior is specific to Python 3's range semantics.")
+        # Attempt to call without patching module's range to list, expecting TypeError in unadapted code
+        try:
+            new_game()
+        except TypeError:
+            # Expected in unadapted Python 3 implementation
+            return
+        else:
+            self.skipTest("Implementation appears adapted to Python 3 (no TypeError on range concatenation).")
+
+    @tag('regression', 'positive', 'valid', 'decoupling', 'security')
+    def test_no_simplegui_runtime_dependency(self):
+        mod = self.mod
+
+        class SimpleGuiSentinel:
+            def __getattr__(self, item):
+                raise AssertionError("simplegui should not be accessed during new_game initialization")
+
+        # Ensure the module has a 'simplegui' attribute that would raise if accessed
+        with patch_module_attr(mod, 'simplegui', SimpleGuiSentinel()):
+            with patch_range_to_list(mod):
+                # Should not raise any assertion related to GUI usage
+                new_game()
+
+        # Validate state initialization still occurs
+        self.assertTrue(hasattr(mod, "deck"))
+        self.assertTrue(hasattr(mod, "exposed"))
+        self.assertTrue(hasattr(mod, "state"))
+        self.assertTrue(hasattr(mod, "turns"))
+        self.assertEqual(len(mod.deck), 16)
+        self.assertEqual(len(mod.exposed), 16)
+        self.assertTrue(all(val is False for val in mod.exposed))
+
+
+if __name__ == '__main__':
+    unittest.main()

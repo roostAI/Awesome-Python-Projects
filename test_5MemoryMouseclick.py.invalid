@@ -1,0 +1,315 @@
+import unittest
+import simplegui  # Required import as per instructions
+import random     # Required import as per instructions
+
+# Import the target function
+from 5- Memory import mouseclick  # noqa: E999
+
+def tags(*names):
+    def decorator(func):
+        setattr(func, 'tags', names)
+        return func
+    return decorator
+
+
+class Test_5MemoryMouseclick(unittest.TestCase):
+
+    def _setup_game(self, deck_values=None, initial_exposed=None, card1=0, card2=0, state=0, turns=0):
+        # Initialize the global variables used by mouseclick via its globals dictionary
+        g = mouseclick.__globals__
+        deck = deck_values if deck_values is not None else [0, 0, 1, 1, 2, 2, 3, 3]  # // TODO: Adjust deck if implementation differs
+        g['deck'] = list(deck)
+        if initial_exposed is None:
+            g['exposed'] = [False] * len(deck)
+        else:
+            g['exposed'] = list(initial_exposed)
+        g['card1'] = card1
+        g['card2'] = card2
+        g['state'] = state
+        g['turns'] = turns
+
+    def pos(self, index, x_offset=10, y=10):
+        # Convert a zero-based card index into an (x, y) mouse position.
+        # Card width assumed 50 pixels. // TODO: Adjust width if implementation differs
+        return (index * 50 + x_offset, y)
+
+    @tags('smoke', 'positive', 'valid')
+    def test_first_click_sets_state1_and_exposes_card(self):
+        # Arrange
+        self._setup_game(deck_values=[0, 0, 1, 1, 2, 2, 3, 3], initial_exposed=[False] * 8, state=0, turns=0)
+        g = mouseclick.__globals__
+        # Act
+        mouseclick(self.pos(0))
+        # Assert
+        self.assertTrue(g['exposed'][0])
+        self.assertTrue(all(not e for e in g['exposed'][1:]))
+        self.assertEqual(g['state'], 1)
+        self.assertEqual(g['card1'], 0)
+        self.assertEqual(g['turns'], 0)
+
+    @tags('regression', 'positive', 'valid')
+    def test_second_click_sets_state2_increments_turns_and_sets_card2(self):
+        # Arrange
+        self._setup_game(deck_values=[0, 0, 1, 1, 2, 2, 3, 3], initial_exposed=[False] * 8, state=0, turns=0)
+        g = mouseclick.__globals__
+        mouseclick(self.pos(0))
+        # Act
+        mouseclick(self.pos(2))
+        # Assert
+        self.assertTrue(g['exposed'][0])
+        self.assertTrue(g['exposed'][2])
+        self.assertEqual(g['state'], 2)
+        self.assertEqual(g['card1'], 0)
+        self.assertEqual(g['card2'], 2)
+        self.assertEqual(g['turns'], 1)
+
+    @tags('regression', 'positive', 'valid')
+    def test_third_click_after_mismatch_hides_previous_and_starts_new_turn(self):
+        # Arrange
+        self._setup_game(deck_values=[0, 0, 1, 1, 2, 2, 3, 3])
+        g = mouseclick.__globals__
+        mouseclick(self.pos(0))  # value 0
+        mouseclick(self.pos(2))  # value 1 => mismatch
+        # Act
+        mouseclick(self.pos(3))
+        # Assert
+        self.assertFalse(g['exposed'][0])
+        self.assertFalse(g['exposed'][2])
+        self.assertTrue(g['exposed'][3])
+        self.assertEqual(g['state'], 1)
+        self.assertEqual(g['card1'], 3)
+        self.assertEqual(g['turns'], 1)
+
+    @tags('regression', 'positive', 'valid')
+    def test_third_click_after_match_keeps_matched_pair_exposed(self):
+        # Arrange
+        self._setup_game(deck_values=[0, 0, 1, 1, 2, 2, 3, 3])
+        g = mouseclick.__globals__
+        mouseclick(self.pos(0))  # value 0
+        mouseclick(self.pos(1))  # value 0 -> match
+        # Act
+        mouseclick(self.pos(2))
+        # Assert
+        self.assertTrue(g['exposed'][0])
+        self.assertTrue(g['exposed'][1])
+        self.assertTrue(g['exposed'][2])
+        self.assertEqual(g['state'], 1)
+        self.assertEqual(g['card1'], 2)
+        self.assertEqual(g['turns'], 1)
+
+    @tags('negative', 'valid')
+    def test_clicking_same_card_in_state1_does_nothing(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        mouseclick(self.pos(0))  # now state == 1
+        exposed_before = list(g['exposed'])
+        # Act
+        mouseclick(self.pos(0))  # clicking already exposed card
+        # Assert
+        self.assertEqual(g['state'], 1)
+        self.assertEqual(g['card1'], 0)
+        self.assertEqual(g['turns'], 0)
+        self.assertListEqual(g['exposed'], exposed_before)
+
+    @tags('negative', 'valid')
+    def test_clicking_exposed_card_in_state2_makes_no_changes(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        mouseclick(self.pos(0))
+        mouseclick(self.pos(2))  # reach state 2
+        exposed_before = list(g['exposed'])
+        turns_before = g['turns']
+        # Act
+        mouseclick(self.pos(0))  # clicking exposed card
+        # Assert
+        self.assertEqual(g['state'], 2)
+        self.assertEqual(g['turns'], turns_before)
+        self.assertTrue(g['exposed'][0])
+        self.assertTrue(g['exposed'][2])
+        self.assertListEqual(g['exposed'], exposed_before)
+
+    @tags('regression', 'positive')
+    def test_turns_increments_on_second_reveal_only_across_sequence(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        # Act sequence
+        mouseclick(self.pos(0)); mouseclick(self.pos(1))  # match; turns -> 1
+        self.assertEqual(g['turns'], 1)
+        mouseclick(self.pos(2))                          # start new first
+        mouseclick(self.pos(4))                          # mismatch; turns -> 2
+        self.assertEqual(g['turns'], 2)
+        mouseclick(self.pos(3))                          # third click; hide mismatch; turns stays 2
+        self.assertEqual(g['turns'], 2)
+        mouseclick(self.pos(5))                          # second reveal; turns -> 3
+        # Assert
+        self.assertEqual(g['turns'], 3)
+        self.assertEqual(g['state'], 2)
+
+    @tags('boundary', 'valid')
+    def test_index_calculation_at_cell_edges(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        # Act and Assert stepwise
+        mouseclick((0, 10))   # x=0 -> index 0
+        self.assertTrue(g['exposed'][0])
+        mouseclick((49, 10))  # x=49 -> index 0
+        self.assertTrue(g['exposed'][0])
+        mouseclick((50, 10))  # x=50 -> index 1
+        self.assertTrue(g['exposed'][1])
+        mouseclick((399, 10))  # x=399 -> index 7
+        self.assertTrue(g['exposed'][7])
+
+    @tags('boundary', 'invalid', 'negative')
+    def test_click_with_x_beyond_board_raises_indexerror(self):
+        # Arrange
+        self._setup_game()
+        # Act / Assert
+        with self.assertRaises(IndexError):
+            mouseclick((400, 10))  # out-of-range for len(deck)==8
+
+    @tags('boundary', 'negative')
+    def test_negative_x_selects_last_card_due_to_negative_indexing(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        # Act
+        mouseclick((-1, 10))
+        # Assert
+        self.assertTrue(g['exposed'][7])
+        self.assertEqual(g['state'], 1)
+        # card1 will be the computed index; Python floors -1 // 50 == -1; some implementations may clamp.
+        self.assertIn(g['card1'], (-1, 7))
+
+    @tags('regression', 'positive', 'valid')
+    def test_y_coordinate_is_ignored_in_index_calculation(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        # Act
+        mouseclick((10, 0))       # index 0
+        mouseclick((60, 9999))    # index 1
+        # Assert
+        self.assertTrue(g['exposed'][0])
+        self.assertTrue(g['exposed'][1])
+        self.assertEqual(g['state'], 2)
+        self.assertEqual(g['turns'], 1)
+
+    @tags('regression', 'positive', 'valid')
+    def test_third_click_keeps_new_card_exposed_after_hiding_mismatch(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        mouseclick(self.pos(2))  # value 1
+        mouseclick(self.pos(4))  # value 2 -> mismatch
+        # Act
+        mouseclick(self.pos(6))
+        # Assert
+        self.assertFalse(g['exposed'][2])
+        self.assertFalse(g['exposed'][4])
+        self.assertTrue(g['exposed'][6])
+        self.assertEqual(g['state'], 1)
+        self.assertEqual(g['card1'], 6)
+        self.assertEqual(g['turns'], 1)
+
+    @tags('regression', 'negative')
+    def test_double_click_same_card_does_not_advance(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        # Act
+        mouseclick(self.pos(3))
+        mouseclick(self.pos(3))
+        # Assert
+        self.assertEqual(g['state'], 1)
+        self.assertEqual(g['turns'], 0)
+        self.assertTrue(g['exposed'][3])
+        self.assertTrue(all(not g['exposed'][i] for i in range(8) if i != 3))
+
+    @tags('regression', 'internal')
+    def test_card_pointers_assignment_across_clicks(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        # Act
+        mouseclick(self.pos(0))
+        mouseclick(self.pos(2))
+        # Assert after the second click
+        self.assertEqual(g['card1'], 0)
+        self.assertEqual(g['card2'], 2)
+        # Third click
+        mouseclick(self.pos(5))
+        self.assertEqual(g['state'], 1)
+        self.assertEqual(g['card1'], 5)
+        # card2 remains as previously set until a new second reveal
+        self.assertEqual(g['card2'], 2)
+
+    @tags('regression', 'stability')
+    def test_clicking_already_matched_card_has_no_effect(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        mouseclick(self.pos(0))
+        mouseclick(self.pos(1))  # match first pair
+        state_before = g['state']
+        turns_before = g['turns']
+        # Act
+        mouseclick(self.pos(0))  # clicking already matched card
+        # Assert
+        self.assertEqual(g['state'], state_before)
+        self.assertEqual(g['turns'], turns_before)
+        self.assertTrue(g['exposed'][0])
+        self.assertTrue(g['exposed'][1])
+
+    @tags('regression', 'positive')
+    def test_turns_matches_relationship_over_two_pairs(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        # Act: complete two matched pairs
+        mouseclick(self.pos(0))
+        mouseclick(self.pos(1))  # first match -> turns 1
+        mouseclick(self.pos(2))  # new first
+        mouseclick(self.pos(3))  # second match -> turns 2
+        # Assert
+        self.assertTrue(g['exposed'][0])
+        self.assertTrue(g['exposed'][1])
+        self.assertTrue(g['exposed'][2])
+        self.assertTrue(g['exposed'][3])
+        self.assertEqual(g['state'], 2)
+        self.assertEqual(g['turns'], 2)
+
+    @tags('regression', 'negative')
+    def test_mismatch_remains_visible_until_third_valid_click(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        mouseclick(self.pos(2))
+        mouseclick(self.pos(4))  # mismatch
+        turns_before = g['turns']
+        # Act
+        mouseclick(self.pos(2))  # clicking an already exposed card in state 2
+        # Assert
+        self.assertEqual(g['state'], 2)
+        self.assertTrue(g['exposed'][2])
+        self.assertTrue(g['exposed'][4])
+        self.assertEqual(g['turns'], turns_before)
+
+    @tags('boundary', 'smoke', 'valid')
+    def test_rightmost_card_selected_with_max_inrange_x(self):
+        # Arrange
+        self._setup_game()
+        g = mouseclick.__globals__
+        # Act
+        mouseclick((399, 10))
+        # Assert
+        self.assertTrue(g['exposed'][7])
+        self.assertEqual(g['card1'], 7)
+        self.assertEqual(g['state'], 1)
+
+
+if __name__ == '__main__':
+    unittest.main()
