@@ -1,0 +1,244 @@
+import sys
+import types
+import unittest
+import math
+import random
+
+# Ensure simplegui is available (stub if missing) before importing the target module
+try:
+    import simplegui  # noqa: F401
+except Exception:  # pragma: no cover
+    simplegui = types.ModuleType("simplegui")
+
+    class _StubFrame:
+        def __init__(self, title, width, height):
+            self.title = title
+            self.width = width
+            self.height = height
+            self._handlers = {}
+
+        def set_keyup_handler(self, handler):
+            self._handlers['keyup'] = handler
+
+        def set_keydown_handler(self, handler):
+            self._handlers['keydown'] = handler
+
+        def set_mouseclick_handler(self, handler):
+            self._handlers['mouseclick'] = handler
+
+        def set_draw_handler(self, handler):
+            self._handlers['draw'] = handler
+
+        def start(self):
+            # No-op for tests
+            return None
+
+    class _StubTimer:
+        def __init__(self, interval, handler):
+            self.interval = interval
+            self.handler = handler
+
+        def start(self):
+            # No-op for tests
+            return None
+
+        def stop(self):
+            # No-op for tests
+            return None
+
+    def _load_image(url):
+        return {"type": "image", "url": url}
+
+    def _load_sound(url):
+        return {"type": "sound", "url": url}
+
+    def _create_frame(title, width, height):
+        return _StubFrame(title, width, height)
+
+    def _create_timer(interval, handler):
+        return _StubTimer(interval, handler)
+
+    simplegui.load_image = _load_image
+    simplegui.load_sound = _load_sound
+    simplegui.create_frame = _create_frame
+    simplegui.create_timer = _create_timer
+    sys.modules["simplegui"] = simplegui
+
+# Attempt to import ImageInfo and the module-level instances
+IMPORT_FAILED = False
+_import_error = None
+try:
+    # Primary import path as specified
+    from Asteroids-RiceRocks import (
+        ImageInfo,
+        debris_info,
+        nebula_info,
+        splash_info,
+        ship_info,
+        missile_info,
+        asteroid_info,
+        explosion_info,
+        WIDTH,
+        HEIGHT,
+    )
+except Exception as e1:
+    # Try common alternate module names as fallback
+    try:
+        from Asteroids_RiceRocks import (
+            ImageInfo,
+            debris_info,
+            nebula_info,
+            splash_info,
+            ship_info,
+            missile_info,
+            asteroid_info,
+            explosion_info,
+            WIDTH,
+            HEIGHT,
+        )
+    except Exception as e2:
+        IMPORT_FAILED = True
+        _import_error = (e1, e2)
+        # Define placeholders to satisfy name references; tests will skip on setUpClass
+        ImageInfo = None
+        debris_info = nebula_info = splash_info = ship_info = missile_info = asteroid_info = explosion_info = None
+        WIDTH = 800
+        HEIGHT = 600
+
+
+def tags(*tag_names):
+    def _decorator(func):
+        setattr(func, "tags", set(tag_names))
+        return func
+    return _decorator
+
+
+@unittest.skipIf(IMPORT_FAILED, "Target module import failed; skipping tests.")
+class Test_ImageInfoGetCenter(unittest.TestCase):
+
+    @tags("smoke", "regression", "positive", "valid")
+    def test_get_center_known_assets(self):
+        # Scenario 1: verify known module-level asset centers
+        assets = [
+            (debris_info, [320, 240]),
+            (nebula_info, [400, 300]),
+            (splash_info, [200, 150]),
+            (ship_info, [45, 45]),
+            (missile_info, [5, 5]),
+            (asteroid_info, [45, 45]),
+            (explosion_info, [64, 64]),
+        ]
+        for obj, expected in assets:
+            with self.subTest(asset=obj):
+                self.assertEqual(obj.get_center(), expected)
+
+    @tags("regression", "positive", "valid")
+    def test_get_center_returns_same_object_as_constructor_input(self):
+        # Scenario 2: identity should be same list object
+        c = [123, 456]
+        instance = ImageInfo(c, size=[10, 20])
+        ret = instance.get_center()
+        self.assertIs(ret, c)
+        self.assertEqual(ret, [123, 456])
+
+    @tags("regression", "negative", "mutation", "aliasing")
+    def test_get_center_mutation_is_reflected(self):
+        # Scenario 3: mutating returned list affects internal state
+        instance = ImageInfo([10, 20], size=[30, 40])
+        ref1 = instance.get_center()
+        ref1[0] = 99
+        ref2 = instance.get_center()
+        self.assertEqual(ref2, [99, 20])
+
+    @tags("regression", "positive", "deterministic")
+    def test_get_center_repeated_calls_consistent(self):
+        # Scenario 4: repeated calls return same object and value
+        instance = ImageInfo([7, 8], size=[1, 1])
+        c1 = instance.get_center()
+        c2 = instance.get_center()
+        self.assertIs(c1, c2)
+        self.assertEqual(c1, [7, 8])
+
+    @tags("regression", "positive", "boundary")
+    def test_get_center_negative_coordinates_unmodified(self):
+        # Scenario 5: negative coordinates preserved unchanged
+        instance = ImageInfo([-15, -30], size=[10, 10])
+        ret = instance.get_center()
+        self.assertEqual(ret, [-15, -30])
+
+    @tags("regression", "positive", "precision")
+    def test_get_center_float_coordinates_preserved(self):
+        # Scenario 6: float coordinates preserved exactly
+        instance = ImageInfo([400.5, 299.25], size=[800, 600])
+        ret = instance.get_center()
+        self.assertEqual(ret, [400.5, 299.25])
+
+    @tags("regression", "positive", "boundary", "large")
+    def test_get_center_large_coordinates_preserved(self):
+        # Scenario 7: very large centers preserved exactly
+        instance = ImageInfo([1048576, 2097151], size=[90, 90])
+        ret = instance.get_center()
+        self.assertEqual(ret, [1048576, 2097151])
+
+    @tags("regression", "positive", "isolation")
+    def test_get_center_instance_independence(self):
+        # Scenario 8: independence between instances
+        info_a = ImageInfo([1, 2], size=[10, 10])
+        info_b = ImageInfo([3, 4], size=[10, 10])
+        ref_a = info_a.get_center()
+        ref_a[0] = 99
+        self.assertEqual(info_a.get_center(), [99, 2])
+        self.assertEqual(info_b.get_center(), [3, 4])
+
+    @tags("regression", "positive", "valid")
+    def test_get_center_ignores_unrelated_fields(self):
+        # Scenario 9: unrelated fields do not affect center
+        instance = ImageInfo([12, 34], size=[56, 78], radius=9, lifespan=24, animated=True)
+        ret = instance.get_center()
+        self.assertEqual(ret, [12, 34])
+
+    @tags("regression", "positive", "environment")
+    def test_get_center_independent_of_canvas_dimensions(self):
+        # Scenario 10: independence from global WIDTH/HEIGHT
+        instance = ImageInfo([5, 5], size=[10, 10])
+        ret = instance.get_center()
+        self.assertEqual(ret, [5, 5])
+        global WIDTH, HEIGHT  # Values imported from module
+        expected_canvas_center = [WIDTH / 2, HEIGHT / 2]
+        if expected_canvas_center != [5, 5]:
+            self.assertNotEqual(ret, expected_canvas_center)
+
+    @tags("regression", "positive", "bulk")
+    def test_get_center_bulk_asset_validation(self):
+        # Scenario 11: bulk validation with subtests
+        asset_map = {
+            debris_info: [320, 240],
+            nebula_info: [400, 300],
+            splash_info: [200, 150],
+            ship_info: [45, 45],
+            missile_info: [5, 5],
+            asteroid_info: [45, 45],
+            explosion_info: [64, 64],
+        }
+        for obj, expected in asset_map.items():
+            with self.subTest(asset=obj):
+                self.assertEqual(obj.get_center(), expected)
+
+    @tags("regression", "stability", "positive")
+    def test_get_center_stability_after_other_calls(self):
+        # Scenario 12: calling other accessors does not change center or its identity
+        center = [21, 22]
+        instance = ImageInfo(center, size=[90, 90])
+        before = instance.get_center()
+        # Call other accessors if they exist
+        _ = getattr(instance, "get_size", lambda: None)()
+        _ = getattr(instance, "get_radius", lambda: None)()
+        _ = getattr(instance, "get_lifespan", lambda: None)()
+        _ = getattr(instance, "get_animated", lambda: None)()
+        after = instance.get_center()
+        self.assertIs(before, after)
+        self.assertEqual(after, [21, 22])
+
+
+if __name__ == "__main__":
+    unittest.main()
