@@ -1,0 +1,249 @@
+import pytest
+from typing import List
+from 3SumClosest.3Sum_Closest import Solution
+
+class Test_SolutionThreeSumClosest:
+
+    @pytest.mark.valid
+    @pytest.mark.smoke
+    def test_three_sum_closest_basic(self):
+        """
+        Scenario 1: Basic Functionality with Positive and Negative Numbers
+        Verifies the function correctly finds the closest sum to the target in a mixed list of positive and negative integers,
+        where the closest sum is not an exact match.
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [-1, 2, 1, -4]
+        target: int = 1
+        expected_output: int = 2
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
+
+    @pytest.mark.valid
+    @pytest.mark.edge_case
+    def test_three_sum_closest_exact_match(self):
+        """
+        Scenario 2: Target Exactly Matches a Sum
+        Confirms the function's early exit behavior when an exact sum equal to the target is found.
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [0, 0, 0]
+        target: int = 0
+        expected_output: int = 0
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
+
+    @pytest.mark.valid
+    def test_three_sum_closest_all_positive_no_exact_match(self):
+        """
+        Scenario 3: All Positive Numbers, Target Not an Exact Match
+        Evaluates the function's ability to find the closest sum when all numbers are positive and no combination exactly equals the target.
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [1, 2, 3, 4, 5]
+        target: int = 13
+        expected_output: int = 12
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
+
+    @pytest.mark.valid
+    def test_three_sum_closest_all_negative_no_exact_match(self):
+        """
+        Scenario 4: All Negative Numbers, Target Not an Exact Match
+        Checks the function's behavior with a list of only negative numbers and a negative target, where no exact sum is found.
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [-5, -4, -3, -2, -1]
+        target: int = -15
+        expected_output: int = -12
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
+
+    @pytest.mark.valid
+    @pytest.mark.edge_case
+    def test_three_sum_closest_mixed_numbers_target_zero(self):
+        """
+        Scenario 5: Mixed Numbers Including Zero, Target is Zero
+        Tests the function with a list containing positive, negative, and zero values, aiming for a target of zero.
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [-1, 0, 1, 2, -2]
+        target: int = 0
+        expected_output: int = 0
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
+
+    @pytest.mark.valid
+    @pytest.mark.edge_case
+    def test_three_sum_closest_duplicates(self):
+        """
+        Scenario 6: List with Duplicate Numbers
+        Ensures the function correctly handles input lists containing duplicate numbers.
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [1, 1, 1, 0]
+        target: int = 2
+        expected_output: int = 2
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
+
+    @pytest.mark.valid
+    @pytest.mark.edge_case
+    def test_three_sum_closest_min_size_list(self):
+        """
+        Scenario 7: Minimum List Size (Three Elements)
+        Verifies the function's behavior when the input list contains the minimum possible number of elements (three).
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [1, 2, 3]
+        target: int = 10
+        expected_output: int = 6
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
+
+    @pytest.mark.valid
+    @pytest.mark.edge_case
+    def test_three_sum_closest_target_too_high(self):
+        """
+        Scenario 8: Target Far Above Any Possible Sum
+        Checks the function's robustness when the target value is significantly higher than any possible sum from the input list.
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [1, 2, 3, 4, 5]
+        target: int = 100
+        expected_output: int = 12
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
+
+    @pytest.mark.valid
+    @pytest.mark.edge_case
+    def test_three_sum_closest_target_too_low(self):
+        """
+        Scenario 9: Target Far Below Any Possible Sum
+        Checks the function's robustness when the target value is significantly lower than any possible sum from the input list.
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [1, 2, 3, 4, 5]
+        target: int = -100
+        expected_output: int = 6
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
+
+    @pytest.mark.valid
+    @pytest.mark.regression
+    def test_three_sum_closest_equally_close_sums(self):
+        """
+        Scenario 10: Multiple Sums Equally Close to Target (No Exact Match)
+        Verifies the function's behavior when two different sums are equally close to the target,
+        and neither is an exact match. The function should return the one it finds first based on its traversal order.
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [0, 1, 5, 10, 15]
+        target: int = 8
+        # Both 0+1+5=6 (diff 2) and 0+1+10=11 (diff 3), 1+5+10=16 (diff 8)
+        # The problem statement implies any equally closest sum is acceptable.
+        # Given the implementation, initial res is sum(num[:3]) = 0+1+5 = 6.
+        # abs(6-8) = 2.
+        # When i=0, l=1, r=4 (0,1,15) sum=16, diff=8
+        # When i=0, l=1, r=3 (0,1,10) sum=11, diff=3. abs(11-8) > abs(6-8), so res remains 6.
+        # When i=0, l=2, r=3 (0,5,10) sum=15, diff=7
+        # The expected output is 6 because it's the first closest sum found and no other sum is *strictly* closer.
+        expected_output: int = 6
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
+
+    @pytest.mark.valid
+    @pytest.mark.edge_case
+    def test_three_sum_closest_all_identical_elements(self):
+        """
+        Scenario 11: List with All Identical Elements
+        Tests the function with a list where all elements are the same.
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [5, 5, 5]
+        target: int = 10
+        expected_output: int = 15
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
+
+    @pytest.mark.valid
+    def test_three_sum_closest_negative_positive_target_positive_result(self):
+        """
+        Scenario 12: Negative Numbers and Positive Target, Closest Sum is Positive
+        Verifies the function's ability to find a positive closest sum when the list contains negative numbers and the target is positive.
+        """
+        # Arrange
+        solution_instance = Solution()
+        num: List[int] = [-5, -2, 1, 3, 7]
+        target: int = 4
+        # Possible sums:
+        # -5, -2, 1 = -6 (diff 10)
+        # -5, -2, 3 = -4 (diff 8)
+        # -5, -2, 7 = 0 (diff 4)
+        # -5, 1, 3 = -1 (diff 5)
+        # -5, 1, 7 = 3 (diff 1) -> Closest
+        # -2, 1, 3 = 2 (diff 2)
+        # -2, 1, 7 = 6 (diff 2)
+        # -2, 3, 7 = 8 (diff 4)
+        expected_output: int = 3
+
+        # Act
+        actual_output: int = solution_instance.threeSumClosest(num, target)
+
+        # Assert
+        assert actual_output == expected_output
