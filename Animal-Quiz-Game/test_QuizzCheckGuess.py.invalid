@@ -1,0 +1,148 @@
+import pytest
+
+# The function 'check_guess' is assumed to be in a file named 'quizz.py'
+# located in the same directory or a discoverable path. The unnecessary
+# 'streamlit' import which caused the ModuleNotFoundError has been removed.
+# The local re-declaration of the function has been replaced with this import
+# statement to adhere to best practices of testing external modules.
+from quizz import check_guess
+
+
+class Test_QuizzCheckGuess:
+    """
+    Test suite for the check_guess function.
+    """
+
+    @pytest.mark.smoke
+    @pytest.mark.positive
+    @pytest.mark.valid
+    def test_check_guess_with_correct_exact_match(self):
+        """
+        Scenario 1: Correct Guess with Exact Case Match
+        Description: This test verifies that the function correctly identifies a guess
+                     that is an exact, case-sensitive match to the answer and returns
+                     the expected success tuple.
+        """
+        # Arrange
+        secret_answer = "Python"
+        user_guess = "Python"
+        expected_result = (True, "Correct Answer!")
+
+        # Act
+        actual_result = check_guess(user_guess, secret_answer)
+
+        # Assert
+        assert actual_result == expected_result
+
+    @pytest.mark.regression
+    @pytest.mark.positive
+    @pytest.mark.valid
+    def test_check_guess_with_correct_case_insensitive_match(self):
+        """
+        Scenario 2: Correct Guess with Different Case
+        Description: This test ensures that the guess validation is case-insensitive.
+                     It checks if a guess with different casing than the answer is
+                     still considered correct.
+        """
+        # Arrange
+        secret_answer = "Streamlit"
+        guess_lower = "streamlit"
+        guess_upper = "STREAMLIT"
+        expected_result = (True, "Correct Answer!")
+
+        # Act
+        result_lower = check_guess(guess_lower, secret_answer)
+        result_upper = check_guess(guess_upper, secret_answer)
+
+        # Assert
+        assert result_lower == expected_result
+        assert result_upper == expected_result
+
+    @pytest.mark.smoke
+    @pytest.mark.negative
+    @pytest.mark.invalid
+    def test_check_guess_with_incorrect_guess(self):
+        """
+        Scenario 3: Incorrect but Non-Empty Guess
+        Description: This test verifies that the function correctly identifies an
+                     incorrect guess and returns the appropriate failure tuple.
+        """
+        # Arrange
+        secret_answer = "pytest"
+        user_guess = "unittest"
+        expected_result = (False, "Sorry, Wrong Answer!")
+
+        # Act
+        actual_result = check_guess(user_guess, secret_answer)
+
+        # Assert
+        assert actual_result == expected_result
+
+    @pytest.mark.regression
+    @pytest.mark.negative
+    @pytest.mark.invalid
+    def test_check_guess_with_empty_string(self):
+        """
+        Scenario 4: Empty String Guess
+        Description: This test checks the function's behavior when an empty string
+                     is provided as the guess, which should be treated as no guess
+                     being made.
+        """
+        # Arrange
+        secret_answer = "docker"
+        user_guess = ""
+        expected_result = (None, "")
+
+        # Act
+        actual_result = check_guess(user_guess, secret_answer)
+
+        # Assert
+        assert actual_result == expected_result
+
+    @pytest.mark.regression
+    @pytest.mark.negative
+    @pytest.mark.invalid
+    def test_check_guess_with_none_value(self):
+        """
+        Scenario 5: None Value as Guess
+        Description: This test ensures the function handles a "None" value for the
+                     guess parameter gracefully, which is another form of a
+                     non-existent guess.
+        """
+        # Arrange
+        secret_answer = "kubernetes"
+        user_guess = None
+        expected_result = (None, "")
+
+        # Act
+        actual_result = check_guess(user_guess, secret_answer)
+
+        # Assert
+        assert actual_result == expected_result
+
+    @pytest.mark.regression
+    @pytest.mark.negative
+    @pytest.mark.invalid
+    def test_check_guess_with_unstripped_whitespace(self):
+        """
+        Scenario 6: Guess with Leading or Trailing Whitespace
+        Description: This test verifies the current behavior where leading or trailing
+                     whitespace in a guess causes it to be evaluated as incorrect,
+                     as the function does not strip whitespace.
+        """
+        # Arrange
+        secret_answer = "FastAPI"
+        guess_with_trailing_space = "FastAPI "
+        guess_with_leading_space = " FastAPI"
+        guess_with_both_spaces = " FastAPI "
+        expected_result = (False, "Sorry, Wrong Answer!")
+
+        # Act
+        result_trailing = check_guess(guess_with_trailing_space, secret_answer)
+        result_leading = check_guess(guess_with_leading_space, secret_answer)
+        result_both = check_guess(guess_with_both_spaces, secret_answer)
+
+        # Assert
+        assert result_trailing == expected_result
+        assert result_leading == expected_result
+        assert result_both == expected_result
