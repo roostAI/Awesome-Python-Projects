@@ -1,0 +1,174 @@
+import pytest
+from unittest.mock import patch
+import streamlit as st
+
+# Assuming the file structure allows this import.
+# This might require an __init__.py file in the Animal-Quiz-Game directory.
+from Animal-Quiz-Game.quizz import main
+
+class Test_QuizzMain:
+    """
+    Test suite for the main quiz function.
+    """
+
+    @pytest.mark.valid
+    @pytest.mark.positive
+    @pytest.mark.smoke
+    def test_main_with_all_correct_answers(self, mocker):
+        """
+        Scenario 1: All answers are correct
+        This test verifies that the score is correctly calculated as 3 when the user
+        provides the correct answer for all three questions. It also ensures that a
+        success message is displayed for each correct answer.
+        """
+        # Arrange: Mock the "streamlit" module and configure st.text_input
+        mock_st = mocker.patch('Animal-Quiz-Game.quizz.st')
+        
+        # // TODO: Change the values in this dictionary to test with different correct answers if needed.
+        correct_answers = {
+            'input1': 'polar bear',
+            'input2': 'cheetah',
+            'input3': 'blue whale'
+        }
+        mock_st.text_input.side_effect = lambda label, key: correct_answers[key]
+
+        # Act: Call the "main()" function.
+        main()
+
+        # Assert: Verify success calls and the final score
+        assert mock_st.success.call_count == 3, "Expected three success messages for three correct answers"
+        mock_st.success.assert_called_with("Correct Answer!")
+        mock_st.error.assert_not_called()
+        mock_st.write.assert_called_with("Your Score is:", 3)
+
+    @pytest.mark.invalid
+    @pytest.mark.negative
+    def test_main_with_all_incorrect_answers(self, mocker):
+        """
+        Scenario 2: All answers are incorrect
+        This test ensures that the score remains 0 when the user provides incorrect
+        (but non-empty) answers for all three questions. It also verifies that an
+        error message is displayed for each wrong answer.
+        """
+        # Arrange: Mock the "streamlit" module and configure st.text_input
+        mock_st = mocker.patch('Animal-Quiz-Game.quizz.st')
+
+        # // TODO: Change the values in this dictionary to test with different incorrect answers.
+        incorrect_answers = {
+            'input1': 'grizzly bear',
+            'input2': 'lion',
+            'input3': 'elephant'
+        }
+        mock_st.text_input.side_effect = lambda label, key: incorrect_answers[key]
+
+        # Act: Call the "main()" function.
+        main()
+
+        # Assert: Verify error calls and the final score
+        assert mock_st.error.call_count == 3, "Expected three error messages for three incorrect answers"
+        mock_st.error.assert_called_with("Sorry, Wrong Answer!")
+        mock_st.success.assert_not_called()
+        mock_st.write.assert_called_with("Your Score is:", 0)
+
+    @pytest.mark.regression
+    @pytest.mark.valid
+    def test_main_with_mixed_answers(self, mocker):
+        """
+        Scenario 3: A mix of correct and incorrect answers
+        This test verifies the score calculation and feedback mechanism when the user
+        provides a combination of correct and incorrect answers.
+        """
+        # Arrange: Mock the "streamlit" module and configure st.text_input
+        mock_st = mocker.patch('Animal-Quiz-Game.quizz.st')
+
+        # // TODO: Change the values in this dictionary to test different combinations of answers.
+        mixed_answers = {
+            'input1': 'polar bear',  # Correct
+            'input2': 'tiger',       # Incorrect
+            'input3': 'blue whale'   # Correct
+        }
+        mock_st.text_input.side_effect = lambda label, key: mixed_answers[key]
+
+        # Act: Call the "main()" function.
+        main()
+
+        # Assert: Verify success/error calls and the final score
+        assert mock_st.success.call_count == 2, "Expected two success messages"
+        assert mock_st.error.call_count == 1, "Expected one error message"
+        mock_st.write.assert_called_with("Your Score is:", 2)
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_main_with_no_answers_provided(self, mocker):
+        """
+        Scenario 4: Initial state with no answers provided
+        This test simulates the initial loading of the application before the user has
+        entered any text. It verifies that the score is 0 and no success or error
+        messages are displayed.
+        """
+        # Arrange: Mock the "streamlit" module and configure st.text_input to return empty strings
+        mock_st = mocker.patch('Animal-Quiz-Game.quizz.st')
+        mock_st.text_input.return_value = ""
+
+        # Act: Call the "main()" function.
+        main()
+
+        # Assert: Verify no feedback is given and the score is 0
+        mock_st.success.assert_not_called()
+        mock_st.error.assert_not_called()
+        mock_st.write.assert_called_with("Your Score is:", 0)
+
+    @pytest.mark.valid
+    @pytest.mark.positive
+    def test_main_with_case_insensitive_correct_answers(self, mocker):
+        """
+        Scenario 5: Correct answers with different character casing
+        This test validates that the answer-checking logic is case-insensitive by
+        providing correct answers in a mix of upper and lower case letters.
+        """
+        # Arrange: Mock the "streamlit" module and configure st.text_input
+        mock_st = mocker.patch('Animal-Quiz-Game.quizz.st')
+
+        # // TODO: Change the values in this dictionary to test different casing variations.
+        cased_answers = {
+            'input1': 'POLAR BEAR',
+            'input2': 'Cheetah',
+            'input3': 'bLuE wHaLe'
+        }
+        mock_st.text_input.side_effect = lambda label, key: cased_answers[key]
+
+        # Act: Call the "main()" function.
+        main()
+
+        # Assert: Verify success calls and the final score
+        assert mock_st.success.call_count == 3, "Expected three success messages for case-insensitive correct answers"
+        mock_st.success.assert_called_with("Correct Answer!")
+        mock_st.error.assert_not_called()
+        mock_st.write.assert_called_with("Your Score is:", 3)
+
+    @pytest.mark.regression
+    @pytest.mark.valid
+    def test_main_with_one_of_each_answer_type(self, mocker):
+        """
+        Scenario 6: A mix of correct, incorrect, and empty answers
+        This test verifies the application's behavior when the user answers some
+        questions but leaves others blank.
+        """
+        # Arrange: Mock the "streamlit" module and configure st.text_input
+        mock_st = mocker.patch('Animal-Quiz-Game.quizz.st')
+
+        # // TODO: Change the values in this dictionary to test different combinations of answer types.
+        varied_answers = {
+            'input1': 'polar bear',  # Correct
+            'input2': '',            # Empty
+            'input3': 'shark'        # Incorrect
+        }
+        mock_st.text_input.side_effect = lambda label, key: varied_answers[key]
+
+        # Act: Call the "main()" function.
+        main()
+
+        # Assert: Verify success/error calls and the final score
+        assert mock_st.success.call_count == 1, "Expected one success message"
+        assert mock_st.error.call_count == 1, "Expected one error message"
+        mock_st.write.assert_called_with("Your Score is:", 1)
