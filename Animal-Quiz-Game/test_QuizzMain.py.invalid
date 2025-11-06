@@ -1,0 +1,156 @@
+import unittest
+from unittest.mock import patch, call
+import streamlit as st
+
+# Make sure the 'Animal-Quiz-Game' directory is in the Python path
+# or that the test is run from the parent directory.
+from Animal-Quiz-Game.quizz import main
+
+class Test_QuizzMain(unittest.TestCase):
+    """
+    Unit tests for the main function of the Animal Quiz Game.
+    """
+
+    @patch('Animal-Quiz-Game.quizz.st.write')
+    @patch('Animal-Quiz-Game.quizz.st.error')
+    @patch('Animal-Quiz-Game.quizz.st.success')
+    @patch('Animal-Quiz-Game.quizz.st.text_input')
+    @patch('Animal-Quiz-Game.quizz.st.title')
+    def test_main_with_all_correct_answers(self, mock_title, mock_text_input, mock_success, mock_error, mock_write):
+        """
+        Tags: smoke, regression, positive, valid
+        Description: This test verifies that when the user provides the correct answer for all three questions,
+        the score is correctly incremented to 3, and a success message is displayed for each correct answer.
+        """
+        # Arrange: Mock the "streamlit.text_input" function to return the correct answers sequentially.
+        correct_answers = ["polar bear", "cheetah", "blue whale"]
+        mock_text_input.side_effect = correct_answers
+
+        # Act: Invoke the "main()" function.
+        main()
+
+        # Assert: Verify success calls, no error calls, and the final score.
+        self.assertEqual(mock_success.call_count, 3, "Success should be called for each correct answer.")
+        mock_error.assert_not_called("Error should not be called when all answers are correct.")
+        mock_write.assert_called_with("Your Score is:", 3)
+
+    @patch('Animal-Quiz-Game.quizz.st.write')
+    @patch('Animal-Quiz-Game.quizz.st.error')
+    @patch('Animal-Quiz-Game.quizz.st.success')
+    @patch('Animal-Quiz-Game.quizz.st.text_input')
+    @patch('Animal-Quiz-Game.quizz.st.title')
+    def test_main_with_all_incorrect_answers(self, mock_title, mock_text_input, mock_success, mock_error, mock_write):
+        """
+        Tags: regression, negative, invalid
+        Description: This test ensures that if the user provides incorrect answers for all questions,
+        the score remains 0, and an error message is displayed for each incorrect answer.
+        """
+        # Arrange: Mock the "streamlit.text_input" function to return incorrect answers.
+        # // TODO: Change these values to test with other incorrect answers
+        incorrect_answers = ["grizzly bear", "lion", "sperm whale"]
+        mock_text_input.side_effect = incorrect_answers
+
+        # Act: Invoke the "main()" function.
+        main()
+
+        # Assert: Verify error calls, no success calls, and the final score.
+        self.assertEqual(mock_error.call_count, 3, "Error should be called for each incorrect answer.")
+        mock_success.assert_not_called("Success should not be called when all answers are incorrect.")
+        mock_write.assert_called_with("Your Score is:", 0)
+
+    @patch('Animal-Quiz-Game.quizz.st.write')
+    @patch('Animal-Quiz-Game.quizz.st.error')
+    @patch('Animal-Quiz-Game.quizz.st.success')
+    @patch('Animal-Quiz-Game.quizz.st.text_input')
+    @patch('Animal-Quiz-Game.quizz.st.title')
+    def test_main_with_mixed_correct_and_incorrect_answers(self, mock_title, mock_text_input, mock_success, mock_error, mock_write):
+        """
+        Tags: regression, positive, negative
+        Description: This test verifies that the score is calculated correctly when the user provides
+        a combination of correct and incorrect answers.
+        """
+        # Arrange: Mock "streamlit.text_input" to return a sequence of mixed answers.
+        # // TODO: Change the sequence of correct/incorrect answers to test different combinations
+        mixed_answers = ["polar bear", "lion", "sperm whale"]
+        mock_text_input.side_effect = mixed_answers
+
+        # Act: Invoke the "main()" function.
+        main()
+
+        # Assert: Verify the count of success and error calls, and the final score.
+        self.assertEqual(mock_success.call_count, 1, "Success should be called once for the correct answer.")
+        self.assertEqual(mock_error.call_count, 2, "Error should be called twice for the incorrect answers.")
+        mock_write.assert_called_with("Your Score is:", 1)
+
+    @patch('Animal-Quiz-Game.quizz.st.write')
+    @patch('Animal-Quiz-Game.quizz.st.error')
+    @patch('Animal-Quiz-Game.quizz.st.success')
+    @patch('Animal-Quiz-Game.quizz.st.text_input')
+    @patch('Animal-Quiz-Game.quizz.st.title')
+    def test_main_initial_state_with_no_input(self, mock_title, mock_text_input, mock_success, mock_error, mock_write):
+        """
+        Tags: smoke, regression
+        Description: This test simulates the initial loading of the application where the user has not yet
+        entered any answers. It verifies that the score is 0 and no success or error messages are displayed.
+        """
+        # Arrange: Mock "streamlit.text_input" to return an empty string for all inputs.
+        mock_text_input.return_value = ""
+
+        # Act: Invoke the "main()" function.
+        main()
+
+        # Assert: Verify that no feedback is given and the score is 0.
+        mock_success.assert_not_called("Success should not be called for empty input.")
+        mock_error.assert_not_called("Error should not be called for empty input.")
+        mock_write.assert_called_with("Your Score is:", 0)
+
+    @patch('Animal-Quiz-Game.quizz.st.write')
+    @patch('Animal-Quiz-Game.quizz.st.error')
+    @patch('Animal-Quiz-Game.quizz.st.success')
+    @patch('Animal-Quiz-Game.quizz.st.text_input')
+    @patch('Animal-Quiz-Game.quizz.st.title')
+    def test_main_with_case_insensitive_correct_answers(self, mock_title, mock_text_input, mock_success, mock_error, mock_write):
+        """
+        Tags: regression, positive, valid
+        Description: This test ensures that the application correctly identifies answers regardless of
+        letter casing.
+        """
+        # Arrange: Mock "streamlit.text_input" to return correct answers with varied casing.
+        # // TODO: Change the casing to test other variations
+        case_insensitive_answers = ["POLAR BEAR", "Cheetah", "bLuE wHaLe"]
+        mock_text_input.side_effect = case_insensitive_answers
+
+        # Act: Invoke the "main()" function.
+        main()
+
+        # Assert: Verify success calls, no error calls, and the final score.
+        self.assertEqual(mock_success.call_count, 3, "Success should be called for each case-insensitive correct answer.")
+        mock_error.assert_not_called("Error should not be called for case-insensitive correct answers.")
+        mock_write.assert_called_with("Your Score is:", 3)
+
+    @patch('Animal-Quiz-Game.quizz.st.write')
+    @patch('Animal-Quiz-Game.quizz.st.error')
+    @patch('Animal-Quiz-Game.quizz.st.success')
+    @patch('Animal-Quiz-Game.quizz.st.text_input')
+    @patch('Animal-Quiz-Game.quizz.st.title')
+    def test_main_with_mixed_correct_incorrect_and_empty_answers(self, mock_title, mock_text_input, mock_success, mock_error, mock_write):
+        """
+        Tags: regression, positive, negative
+        Description: This test verifies the application's behavior with a complex mix of inputs:
+        one correct, one incorrect, and one left blank by the user.
+        """
+        # Arrange: Mock "streamlit.text_input" to return a mixed sequence.
+        # // TODO: Change the sequence to test other combinations of correct, incorrect, and empty answers
+        mixed_input = ["polar bear", "lion", ""]
+        mock_text_input.side_effect = mixed_input
+
+        # Act: Invoke the "main()" function.
+        main()
+
+        # Assert: Verify the count of success/error calls and the final score.
+        self.assertEqual(mock_success.call_count, 1, "Success should be called once for the correct answer.")
+        self.assertEqual(mock_error.call_count, 1, "Error should be called once for the incorrect answer.")
+        mock_write.assert_called_with("Your Score is:", 1)
+
+if __name__ == '__main__':
+    unittest.main(argv=['first-arg-is-ignored'], exit=False)
