@@ -1,0 +1,71 @@
+import pytest
+import sys
+
+# Check if tkinter is available
+if 'tkinter' not in sys.modules:
+    pytest.skip("tkinter module is not available", allow_module_level=True)
+
+from tkinter import Tk
+from CountdownTimer.CountdownTimer import Application
+
+@pytest.mark.usefixtures("setup_application")
+class Test_ApplicationPauseTime:
+
+    @pytest.fixture
+    def setup_application(self):
+        root = Tk()
+        self.app = Application(root)
+        yield
+        root.destroy()
+
+    @pytest.mark.regression
+    @pytest.mark.positive
+    def test_pause_when_alarm_active(self):
+        # Arrange
+        self.app._alarm_id = 1  # Simulate an active alarm
+        self.app._paused = False
+
+        # Act
+        self.app.pauseTime()
+
+        # Assert
+        assert self.app._paused is True, "The pauseTime function should set _paused to True when an alarm is active."
+
+    @pytest.mark.regression
+    @pytest.mark.negative
+    def test_no_pause_when_alarm_inactive(self):
+        # Arrange
+        self.app._alarm_id = None  # Simulate no active alarm
+        initial_paused_state = self.app._paused
+
+        # Act
+        self.app.pauseTime()
+
+        # Assert
+        assert self.app._paused == initial_paused_state, "The pauseTime function should not change _paused when no alarm is active."
+
+    @pytest.mark.smoke
+    @pytest.mark.positive
+    def test_initial_state_before_pause(self):
+        # Arrange
+        self.app._alarm_id = 1  # Simulate an active alarm
+
+        # Act
+        initial_paused_state = self.app._paused
+
+        # Assert
+        assert initial_paused_state is False, "The initial state of _paused should be False before calling pauseTime."
+
+    @pytest.mark.regression
+    @pytest.mark.positive
+    def test_multiple_calls_to_pause(self):
+        # Arrange
+        self.app._alarm_id = 1  # Simulate an active alarm
+        self.app._paused = False
+
+        # Act
+        self.app.pauseTime()
+        self.app.pauseTime()  # Call pauseTime multiple times
+
+        # Assert
+        assert self.app._paused is True, "The _paused attribute should remain True after multiple calls to pauseTime when an alarm is active."

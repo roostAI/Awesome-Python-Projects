@@ -1,0 +1,81 @@
+import pytest
+import sys
+
+# Ensure tkinter is available
+if sys.version_info >= (3, 0):
+    try:
+        from tkinter import Tk
+        import tkinter as tk
+    except ImportError:
+        raise ImportError("tkinter module is required for this test to run.")
+else:
+    raise ImportError("Python 3 or higher is required for this test.")
+
+# Import the Application class from the CountdownTimer module
+try:
+    from CountdownTimer.CountdownTimer import Application
+except ImportError:
+    raise ImportError("Could not import Application from CountdownTimer.CountdownTimer. "
+                      "Ensure the CountdownTimer module is correctly installed and accessible.")
+
+@pytest.mark.usefixtures("setup_teardown")
+class Test_ApplicationCloseApp:
+
+    @pytest.fixture
+    def setup_teardown(self):
+        # Setup: Initialize Tkinter root and Application instance
+        self.root = Tk()
+        self.app = Application(self.root)
+        yield
+        # Teardown: Ensure the root is destroyed after tests
+        if self.root.winfo_exists():
+            self.root.destroy()
+
+    @pytest.mark.smoke
+    @pytest.mark.positive
+    def test_application_closure(self):
+        # Act: Call the closeApp method
+        self.app.closeApp()
+        # Assert: Check that the root Tkinter instance is destroyed
+        assert not self.root.winfo_exists(), "The application window should be closed."
+
+    @pytest.mark.regression
+    @pytest.mark.positive
+    def test_no_exceptions_on_closure(self):
+        try:
+            # Act: Invoke the closeApp method
+            self.app.closeApp()
+        except Exception as e:
+            pytest.fail(f"Exception raised during application closure: {e}")
+
+    @pytest.mark.regression
+    @pytest.mark.negative
+    def test_multiple_closure_calls(self):
+        try:
+            # Act: Call the closeApp method multiple times
+            self.app.closeApp()
+            self.app.closeApp()  # Call again to test multiple closures
+        except Exception as e:
+            pytest.fail(f"Exception raised on multiple closure calls: {e}")
+
+    @pytest.mark.regression
+    @pytest.mark.positive
+    def test_closure_with_active_widgets(self):
+        # Arrange: Create and display various Tkinter widgets
+        label = tk.Label(self.root, text="Active Widget")
+        label.pack()
+        # Act: Call the closeApp method while widgets are active
+        self.app.closeApp()
+        # Assert: Confirm that the application closes
+        assert not self.root.winfo_exists(), "The application window should be closed with active widgets."
+
+    @pytest.mark.performance
+    @pytest.mark.positive
+    def test_resource_release_on_closure(self):
+        # Arrange: Monitor resource usage before closure
+        # TODO: Implement resource monitoring logic if needed
+        # Act: Call the closeApp method
+        self.app.closeApp()
+        # Assert: Ensure resources are released
+        # TODO: Implement resource validation logic if needed
+        assert not self.root.winfo_exists(), "The application window should be closed and resources released."

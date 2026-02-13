@@ -1,0 +1,87 @@
+import pytest
+from unittest.mock import MagicMock
+import tkinter as tk
+from Countdown_Timer.CountdownTimer import Application
+
+@pytest.mark.usefixtures("app")
+class Test_ApplicationStartTime:
+
+    @pytest.fixture
+    def app(self):
+        root = tk.Tk()
+        application = Application(root)
+        yield application
+        root.destroy()
+
+    @pytest.mark.valid
+    def test_startTime_with_valid_integer_input(self, app):
+        # Arrange
+        app.time_var = tk.StringVar(value="10")
+        app._alarm_id = None
+        app.countdown = MagicMock()
+
+        # Act
+        app.startTime()
+
+        # Assert
+        assert app._starttime == 10
+        assert app._paused is False
+        app.countdown.assert_called_once_with(10)
+
+    @pytest.mark.invalid
+    def test_startTime_with_non_integer_input(self, app):
+        # Arrange
+        app.time_var = tk.StringVar(value="invalid")
+        app._alarm_id = None
+        app.countdown = MagicMock()
+
+        # Act
+        app.startTime()
+
+        # Assert
+        assert app._starttime == 0
+        assert app._paused is False
+        app.countdown.assert_called_once_with(0)
+
+    @pytest.mark.negative
+    def test_startTime_with_existing_alarm_id(self, app):
+        # Arrange
+        app.time_var = tk.StringVar(value="10")
+        app._alarm_id = "existing_alarm"
+        app.countdown = MagicMock()
+
+        # Act
+        app.startTime()
+
+        # Assert
+        app.countdown.assert_not_called()
+        assert app._alarm_id == "existing_alarm"
+
+    @pytest.mark.invalid
+    def test_startTime_with_empty_string_input(self, app):
+        # Arrange
+        app.time_var = tk.StringVar(value="")
+        app._alarm_id = None
+        app.countdown = MagicMock()
+
+        # Act
+        app.startTime()
+
+        # Assert
+        assert app._starttime == 0
+        assert app._paused is False
+        app.countdown.assert_called_once_with(0)
+
+    @pytest.mark.regression
+    def test_startTime_resets_paused_state(self, app):
+        # Arrange
+        app.time_var = tk.StringVar(value="10")
+        app._paused = True
+        app._alarm_id = None
+        app.countdown = MagicMock()
+
+        # Act
+        app.startTime()
+
+        # Assert
+        assert app._paused is False
