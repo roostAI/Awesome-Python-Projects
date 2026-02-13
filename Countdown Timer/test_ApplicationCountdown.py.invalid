@@ -1,0 +1,71 @@
+import pytest
+import sys
+
+# Check if tkinter is available
+if sys.version_info >= (3, 0):
+    try:
+        from tkinter import Tk
+    except ImportError:
+        pytest.skip("Tkinter is not available, skipping tests", allow_module_level=True)
+else:
+    pytest.skip("Python version is not supported, skipping tests", allow_module_level=True)
+
+from CountdownTimer.CountdownTimer import Application
+
+@pytest.fixture
+def setup_application():
+    root = Tk()
+    app = Application(root)
+    yield app
+    root.destroy()
+
+@pytest.mark.positive
+def test_countdown_completes_successfully(setup_application):
+    app = setup_application
+    initial_time = 5  # TODO: Adjust the time for testing if needed
+    app.countdown(initial_time)
+    app.master.update_idletasks()
+    app.master.after(6000, lambda: None)  # Wait for countdown to complete
+    app.master.update_idletasks()
+    assert app.labelvariable.get() == "0"
+
+@pytest.mark.positive
+def test_countdown_pauses_and_resumes(setup_application):
+    app = setup_application
+    initial_time = 5  # TODO: Adjust the time for testing if needed
+    app.countdown(initial_time)
+    app.master.update_idletasks()
+    app._paused = True
+    app.master.after(2000, lambda: None)  # Simulate pause
+    app.master.update_idletasks()
+    remaining_time = int(app.labelvariable.get())
+    app._paused = False
+    app.countdown(remaining_time, False)
+    app.master.update_idletasks()
+    app.master.after(remaining_time * 1000 + 1000, lambda: None)  # Wait for countdown to complete
+    app.master.update_idletasks()
+    assert app.labelvariable.get() == "0"
+
+@pytest.mark.positive
+def test_countdown_starts_with_zero(setup_application):
+    app = setup_application
+    app.countdown(0)
+    app.master.update_idletasks()
+    assert app.labelvariable.get() == "0"
+
+@pytest.mark.positive
+def test_countdown_with_start_false(setup_application):
+    app = setup_application
+    initial_time = 5  # TODO: Adjust the time for testing if needed
+    app.countdown(initial_time)
+    app.master.update_idletasks()
+    app.countdown(initial_time - 2, start=False)
+    app.master.update_idletasks()
+    assert app._starttime == initial_time
+
+@pytest.mark.negative
+def test_countdown_handles_negative_time(setup_application):
+    app = setup_application
+    app.countdown(-5)
+    app.master.update_idletasks()
+    assert app.labelvariable.get() == "0"

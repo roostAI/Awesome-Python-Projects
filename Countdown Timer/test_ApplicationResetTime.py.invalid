@@ -1,0 +1,80 @@
+import pytest
+from unittest.mock import MagicMock
+import sys
+
+# Ensure tkinter is available
+try:
+    from tkinter import Tk
+except ImportError:
+    pytest.skip("tkinter is not available", allow_module_level=True)
+
+# Import the Application class from the correct module path
+try:
+    from Countdown_Timer.CountdownTimer import Application
+except ImportError:
+    pytest.fail("Could not import Application from Countdown_Timer.CountdownTimer")
+
+@pytest.mark.usefixtures("tk_root")
+class Test_ApplicationResetTime:
+
+    @pytest.fixture
+    def tk_root(self):
+        root = Tk()
+        yield root
+        root.destroy()
+
+    @pytest.fixture
+    def app(self, tk_root):
+        return Application(tk_root)
+
+    @pytest.mark.regression
+    def test_reset_time_with_active_alarm(self, app):
+        # Arrange
+        app._alarm_id = 'mock_alarm_id'
+        app.master.after_cancel = MagicMock()
+        app.countdown = MagicMock()
+
+        # Act
+        app.resetTime()
+
+        # Assert
+        assert app._alarm_id is None
+        assert app._paused is True
+        app.countdown.assert_called_once_with(0)
+        app.master.after_cancel.assert_called_once_with('mock_alarm_id')
+
+    @pytest.mark.regression
+    def test_reset_time_with_no_active_alarm(self, app):
+        # Arrange
+        app._alarm_id = None
+        app.countdown = MagicMock()
+
+        # Act
+        app.resetTime()
+
+        # Assert
+        assert app._alarm_id is None
+        assert app._paused is True
+        app.countdown.assert_called_once_with(0)
+
+    @pytest.mark.regression
+    def test_reset_time_calls_countdown_with_zero(self, app):
+        # Arrange
+        app.countdown = MagicMock()
+
+        # Act
+        app.resetTime()
+
+        # Assert
+        app.countdown.assert_called_once_with(0)
+
+    @pytest.mark.regression
+    def test_reset_time_paused_state(self, app):
+        # Arrange
+        app._paused = False
+
+        # Act
+        app.resetTime()
+
+        # Assert
+        assert app._paused is True

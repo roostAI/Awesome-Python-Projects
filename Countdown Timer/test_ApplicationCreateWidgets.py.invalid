@@ -1,0 +1,68 @@
+# test_ApplicationCreateWidgets.py
+
+import pytest
+import sys
+
+# Ensure tkinter is available
+try:
+    from tkinter import *
+    import tkinter as tk
+except ImportError:
+    pytest.skip("tkinter is not available", allow_module_level=True)
+
+# Import the Application class from the Countdown_Timer module
+try:
+    from Countdown_Timer.CountdownTimer import Application
+except ImportError:
+    pytest.fail("Could not import Application from Countdown_Timer.CountdownTimer")
+
+@pytest.mark.usefixtures("app")
+class Test_ApplicationCreateWidgets:
+
+    @pytest.fixture
+    def app(self):
+        root = Tk()
+        app = Application(root)
+        yield app
+        root.destroy()
+
+    @pytest.mark.smoke
+    @pytest.mark.positive
+    def test_widget_initialization(self, app):
+        app.createWidgets()
+        assert isinstance(app.input_time, tk.Entry)
+        assert isinstance(app.startButton, Button)
+        assert isinstance(app.pauseButton, Button)
+        assert isinstance(app.resetButton, Button)
+        assert isinstance(app.closeButton, Button)
+        assert isinstance(app.someFrame, Frame)
+        assert isinstance(app.thelabel, Label)
+        assert app.input_time.get() == "Enter Time in seconds"
+
+    @pytest.mark.regression
+    @pytest.mark.positive
+    def test_entry_placeholder_text(self, app):
+        app.createWidgets()
+        assert app.input_time.get() == "Enter Time in seconds"
+
+    @pytest.mark.regression
+    @pytest.mark.positive
+    def test_button_commands(self, app):
+        app.createWidgets()
+        assert app.startButton['command'] == app.startTime
+        assert app.pauseButton['command'] == app.pauseTime
+        assert app.resetButton['command'] == app.resetTime
+        assert app.closeButton['command'] == app.closeApp
+
+    @pytest.mark.regression
+    @pytest.mark.positive
+    def test_label_initialization(self, app):
+        app.createWidgets()
+        assert app.labelvariable.get() == ""
+        assert app.thelabel['textvariable'] == app.labelvariable
+
+    @pytest.mark.regression
+    @pytest.mark.positive
+    def test_frame_packing(self, app):
+        app.createWidgets()
+        assert app.someFrame.pack_info()['side'] == 'top'

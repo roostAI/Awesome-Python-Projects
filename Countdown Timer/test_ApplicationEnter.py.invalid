@@ -1,0 +1,57 @@
+import pytest
+import tkinter as tk
+from Countdown_Timer.CountdownTimer import Application
+import time
+
+@pytest.fixture
+def setup_application():
+    root = tk.Tk()
+    app = Application(root)
+    yield app
+    root.destroy()
+
+@pytest.mark.smoke
+@pytest.mark.positive
+def test_enter_clears_input_field(setup_application):
+    app = setup_application
+    app.input_time.insert(0, "Some text")  # Simulate user input
+    app.enter()
+    assert app.input_time.get() == "", "The input field should be cleared after calling enter."
+
+@pytest.mark.regression
+@pytest.mark.positive
+def test_enter_handles_multiple_arguments(setup_application):
+    app = setup_application
+    app.input_time.insert(0, "Some text")  # Simulate user input
+    app.enter("arg1", "arg2", "arg3")  # Call with multiple arguments
+    assert app.input_time.get() == "", "The input field should be cleared even when enter is called with multiple arguments."
+
+@pytest.mark.regression
+@pytest.mark.positive
+def test_enter_does_not_affect_other_ui_components(setup_application):
+    app = setup_application
+    app.input_time.insert(0, "Some text")  # Simulate user input
+    other_component = tk.Entry(app.root)
+    other_component.insert(0, "Other component text")
+    app.enter()
+    assert app.input_time.get() == "", "The input field should be cleared."
+    assert other_component.get() == "Other component text", "Other UI components should remain unchanged."
+
+@pytest.mark.regression
+@pytest.mark.positive
+def test_enter_with_empty_input_field(setup_application):
+    app = setup_application
+    app.input_time.delete(0, 'end')  # Ensure the input field is empty
+    app.enter()
+    assert app.input_time.get() == "", "The input field should remain empty and no errors should occur."
+
+@pytest.mark.performance
+@pytest.mark.positive
+def test_enter_execution_time(setup_application):
+    app = setup_application
+    app.input_time.insert(0, "x" * 10000)  # Populate with a large amount of text
+    start_time = time.time()
+    app.enter()
+    end_time = time.time()
+    execution_time = end_time - start_time
+    assert execution_time < 0.1, "The enter function should execute quickly to ensure a responsive UI."
