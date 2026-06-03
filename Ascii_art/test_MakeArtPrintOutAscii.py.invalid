@@ -1,0 +1,79 @@
+import pytest
+import sys
+from importlib import import_module
+
+# Import the function from the module
+make_art_module = import_module('Ascii_art.make_art')
+print_out_ascii = getattr(make_art_module, 'print_out_ascii')
+
+class Test_MakeArtPrintOutAscii:
+
+    @pytest.mark.valid
+    def test_simple_2x2_array(self, capsys):
+        # Arrange
+        test_array = [[0, 1], [1, 0]]
+        symbols_list = ['#', '-']
+
+        # Act
+        print_out_ascii(test_array, symbols_list)
+        captured = capsys.readouterr()
+
+        # Assert
+        expected_output = "#-\n-#\n"
+        assert captured.out == expected_output
+
+    @pytest.mark.regression
+    def test_max_integer_values(self, capsys):
+        # Arrange
+        test_array = [[sys.maxsize, sys.maxsize], [sys.maxsize, sys.maxsize]]
+        symbols_list = ['#', '-', '*', '.', '+', 'o']
+
+        # Act
+        print_out_ascii(test_array, symbols_list)
+        captured = capsys.readouterr()
+
+        # Assert
+        expected_output = "oo\noo\n"
+        assert captured.out == expected_output
+
+    @pytest.mark.edge
+    def test_empty_array(self, capsys):
+        # Arrange
+        test_array = [[]]
+        symbols_list = ['#']
+
+        # Act
+        print_out_ascii(test_array, symbols_list)
+        captured = capsys.readouterr()
+
+        # Assert
+        expected_output = "\n"
+        assert captured.out == expected_output
+
+    @pytest.mark.valid
+    def test_non_uniform_array(self, capsys):
+        # Arrange
+        test_array = [[0, 1, 2], [3, 4, 5]]
+        symbols_list = ['#', '-', '*', '.', '+', 'o']
+
+        # Act
+        print_out_ascii(test_array, symbols_list)
+        captured = capsys.readouterr()
+
+        # Assert
+        expected_output = "#-*.\n.+o\n"
+        assert captured.out == expected_output
+
+    @pytest.mark.negative
+    def test_negative_values(self, capsys):
+        # Arrange
+        test_array = [[-1, -2], [-3, -4]]
+        symbols_list = ['#', '-', '*', '.', '+', 'o']
+
+        # Act
+        print_out_ascii(test_array, symbols_list)
+        captured = capsys.readouterr()
+
+        # Assert
+        expected_output = "o+\n*-\n"
+        assert captured.out == expected_output
